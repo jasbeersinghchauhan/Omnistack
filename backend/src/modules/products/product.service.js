@@ -1,14 +1,7 @@
 import query from "../../config/db.js";
 
 export const createProductService = async (product) => {
-    const {
-        productId,
-        categoryId,
-        productName,
-        brand,
-        description,
-        imageLink,
-    } = product;
+    const { productId, categoryId, productName, brand, description, imageLink } = product;
 
     const sql = `
                     INSERT INTO product (
@@ -23,14 +16,7 @@ export const createProductService = async (product) => {
                     RETURNING *;
                 `;
 
-    const values = [
-        productId,
-        categoryId,
-        productName,
-        brand,
-        description,
-        imageLink,
-    ];
+    const values = [productId, categoryId, productName, brand, description, imageLink];
 
     const rows = await query(sql, values);
     return rows[0];
@@ -47,12 +33,14 @@ export const getProductsService = async () => {
 };
 
 export const getProductByIdService = async (id) => {
-    const rows = await query(`
+    const rows = await query(
+        `
                                 SELECT *
                                 FROM product
                                 WHERE product_id = $1;
-                                `, [id]
-                            );
+                                `,
+        [id],
+    );
 
     return rows[0];
 };
@@ -73,14 +61,7 @@ export const updateProductService = async (id, product) => {
                     RETURNING *;
                 `;
 
-    const values = [
-                        categoryId,
-                        productName,
-                        brand,
-                        description,
-                        imageLink,
-                        id,
-                    ];
+    const values = [categoryId, productName, brand, description, imageLink, id];
 
     const rows = await query(sql, values);
 
@@ -88,11 +69,13 @@ export const updateProductService = async (id, product) => {
 };
 
 export const deleteProductService = async (id) => {
-    const rows = await query(`
+    const rows = await query(
+        `
       DELETE FROM product
       WHERE product_id = $1
       RETURNING *;
-    `, [id]
+    `,
+        [id],
     );
 
     return rows[0];

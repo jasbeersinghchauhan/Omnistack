@@ -4,7 +4,7 @@ import {
     getProducts,
     getProductById,
     updateProduct,
-    deleteProduct
+    deleteProduct,
 } from "./product.controller.js";
 
 import authenticate from "../../shared/middlewares/authenticate.middleware.js";
@@ -15,22 +15,10 @@ const router = Router();
 router.get("/", getProducts);
 router.get("/:id", getProductById);
 
-router.post("/", 
-    authenticate,
-    authorize("seller", "admin"),
-    createProduct
-);
+router.post("/", authenticate, authorize("seller", "admin"), createProduct);
 
-router.put("/:id",
-    authenticate,
-    authorize("seller", "admin"),
-    updateProduct
-);
+router.put("/:id", authenticate, authorize("seller", "admin"), updateProduct);
 
-router.delete("/:id", 
-    authenticate,
-    authorize("admin"),
-    deleteProduct
-);
+router.delete("/:id", authenticate, authorize("admin"), deleteProduct);
 
 export default router;

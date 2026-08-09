@@ -6,8 +6,7 @@ import query from "../../config/db.js";
 export const registerUser = async (userData) => {
     const { firstName, lastName, email, password } = userData;
 
-    const existingUser = await query("SELECT user_id FROM users     WHERE email = $1", [email]
-                        );
+    const existingUser = await query("SELECT user_id FROM users     WHERE email = $1", [email]);
 
     if (existingUser.length > 0) {
         throw new Error("Email already exists");
@@ -34,13 +33,7 @@ export const registerUser = async (userData) => {
         role
     `;
 
-    const values = [
-        uuidv7(),
-        firstName,
-        lastName,
-        email,
-        hashedPassword,
-    ];
+    const values = [uuidv7(), firstName, lastName, email, hashedPassword];
 
     const rows = await query(sql, values);
     return rows[0];
@@ -66,10 +59,7 @@ export const loginUser = async ({ email, password }) => {
 
     const user = rows[0];
 
-    const isMatch = await bcrypt.compare(
-        password,
-        user.password_hash
-    );
+    const isMatch = await bcrypt.compare(password, user.password_hash);
 
     if (!isMatch) {
         throw new Error("Invalid email or password");
@@ -84,7 +74,7 @@ export const loginUser = async ({ email, password }) => {
         process.env.JWT_SECRET,
         {
             expiresIn: process.env.JWT_EXPIRES_IN || "1d",
-        }
+        },
     );
 
     return {

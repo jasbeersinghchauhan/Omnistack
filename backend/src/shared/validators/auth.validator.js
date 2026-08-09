@@ -1,7 +1,6 @@
 import { body } from "express-validator";
 
 export const registerValidator = [
-
     body("firstName")
         .trim()
         .notEmpty()
@@ -16,11 +15,7 @@ export const registerValidator = [
         .isLength({ min: 2, max: 50 })
         .withMessage("Last name must be between 2 and 50 characters"),
 
-    body("email")
-        .trim()
-        .normalizeEmail()
-        .isEmail()
-        .withMessage("Enter a valid email address"),
+    body("email").trim().normalizeEmail().isEmail().withMessage("Enter a valid email address"),
 
     body("password")
         .isLength({ min: 8 })
@@ -34,14 +29,7 @@ export const registerValidator = [
 ];
 
 export const loginValidator = [
+    body("email").trim().normalizeEmail().isEmail().withMessage("Enter a valid email"),
 
-    body("email")
-        .trim()
-        .normalizeEmail()
-        .isEmail()
-        .withMessage("Enter a valid email"),
-
-    body("password")
-        .notEmpty()
-        .withMessage("Password is required"),
+    body("password").notEmpty().withMessage("Password is required"),
 ];

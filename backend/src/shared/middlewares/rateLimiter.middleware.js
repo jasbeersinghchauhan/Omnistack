@@ -5,8 +5,8 @@ const authRateLimiter = rateLimit({
     max: 10,
     message: {
         success: false,
-        message: "Too many requests. Please try again later."
-    }
+        message: "Too many requests. Please try again later.",
+    },
 });
 
 export default authRateLimiter;

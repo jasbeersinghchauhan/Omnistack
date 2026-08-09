@@ -74,9 +74,9 @@ Successful responses should follow a consistent structure:
 
 ```json
 {
-  "success": true,
-  "message": "Operation successful",
-  "data": {}
+    "success": true,
+    "message": "Operation successful",
+    "data": {}
 }
 ```
 
@@ -84,9 +84,9 @@ For collections:
 
 ```json
 {
-  "success": true,
-  "message": "Products retrieved successfully",
-  "data": []
+    "success": true,
+    "message": "Products retrieved successfully",
+    "data": []
 }
 ```
 
@@ -98,8 +98,8 @@ Errors should follow a consistent structure:
 
 ```json
 {
-  "success": false,
-  "message": "Error description"
+    "success": false,
+    "message": "Error description"
 }
 ```
 
@@ -107,14 +107,14 @@ For validation errors:
 
 ```json
 {
-  "success": false,
-  "message": "Validation failed",
-  "errors": [
-    {
-      "field": "email",
-      "message": "Invalid email address"
-    }
-  ]
+    "success": false,
+    "message": "Validation failed",
+    "errors": [
+        {
+            "field": "email",
+            "message": "Invalid email address"
+        }
+    ]
 }
 ```
 
@@ -172,17 +172,17 @@ Creates a new user account.
 
 ```json
 {
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "SecurePassword123"
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "SecurePassword123"
 }
 ```
 
 ### Required Fields
 
-* `name`
-* `email`
-* `password`
+- `name`
+- `email`
+- `password`
 
 ### Success Response
 
@@ -190,15 +190,15 @@ Creates a new user account.
 
 ```json
 {
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "user": {
-      "id": 1,
-      "name": "John Doe",
-      "email": "john@example.com"
+    "success": true,
+    "message": "User registered successfully",
+    "data": {
+        "user": {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john@example.com"
+        }
     }
-  }
 }
 ```
 
@@ -206,10 +206,10 @@ Passwords must never be returned in API responses.
 
 ### Possible Errors
 
-* `400` — Invalid request
-* `409` — Email already registered
-* `422` — Validation failed
-* `500` — Internal server error
+- `400` — Invalid request
+- `409` — Email already registered
+- `422` — Validation failed
+- `500` — Internal server error
 
 ---
 
@@ -231,8 +231,8 @@ Authenticates a user and provides a JWT.
 
 ```json
 {
-  "email": "john@example.com",
-  "password": "SecurePassword123"
+    "email": "john@example.com",
+    "password": "SecurePassword123"
 }
 ```
 
@@ -242,25 +242,25 @@ Authenticates a user and provides a JWT.
 
 ```json
 {
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "token": "<JWT_TOKEN>",
-    "user": {
-      "id": 1,
-      "name": "John Doe",
-      "email": "john@example.com"
+    "success": true,
+    "message": "Login successful",
+    "data": {
+        "token": "<JWT_TOKEN>",
+        "user": {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john@example.com"
+        }
     }
-  }
 }
 ```
 
 ### Possible Errors
 
-* `400` — Missing or invalid input
-* `401` — Invalid credentials
-* `429` — Too many login attempts
-* `500` — Internal server error
+- `400` — Missing or invalid input
+- `401` — Invalid credentials
+- `429` — Too many login attempts
+- `500` — Internal server error
 
 ---
 
@@ -288,8 +288,8 @@ No request body is required.
 
 ```json
 {
-  "success": true,
-  "message": "Logout successful"
+    "success": true,
+    "message": "Logout successful"
 }
 ```
 
@@ -317,7 +317,7 @@ Initiates the password recovery process.
 
 ```json
 {
-  "email": "john@example.com"
+    "email": "john@example.com"
 }
 ```
 
@@ -327,8 +327,8 @@ Initiates the password recovery process.
 
 ```json
 {
-  "success": true,
-  "message": "If the account exists, password reset instructions have been sent"
+    "success": true,
+    "message": "If the account exists, password reset instructions have been sent"
 }
 ```
 
@@ -354,8 +354,8 @@ Changes the user's password using a valid password-reset token.
 
 ```json
 {
-  "token": "<RESET_TOKEN>",
-  "password": "NewSecurePassword123"
+    "token": "<RESET_TOKEN>",
+    "password": "NewSecurePassword123"
 }
 ```
 
@@ -365,17 +365,17 @@ Changes the user's password using a valid password-reset token.
 
 ```json
 {
-  "success": true,
-  "message": "Password reset successful"
+    "success": true,
+    "message": "Password reset successful"
 }
 ```
 
 ### Possible Errors
 
-* `400` — Invalid request
-* `401` — Invalid or expired reset token
-* `422` — Invalid password
-* `500` — Internal server error
+- `400` — Invalid request
+- `401` — Invalid or expired reset token
+- `422` — Invalid password
+- `500` — Internal server error
 
 ---
 
@@ -399,15 +399,15 @@ Returns the profile of the currently authenticated user.
 
 ```json
 {
-  "success": true,
-  "message": "Profile retrieved successfully",
-  "data": {
-    "user": {
-      "id": 1,
-      "name": "John Doe",
-      "email": "john@example.com"
+    "success": true,
+    "message": "Profile retrieved successfully",
+    "data": {
+        "user": {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john@example.com"
+        }
     }
-  }
 }
 ```
 
@@ -459,24 +459,24 @@ GET /api/v1/products?page=1&limit=20
 
 ```json
 {
-  "success": true,
-  "message": "Products retrieved successfully",
-  "data": [
-    {
-      "id": 1,
-      "name": "Laptop",
-      "category_id": 2,
-      "supplier_id": 3,
-      "price": 55000,
-      "quantity": 20
+    "success": true,
+    "message": "Products retrieved successfully",
+    "data": [
+        {
+            "id": 1,
+            "name": "Laptop",
+            "category_id": 2,
+            "supplier_id": 3,
+            "price": 55000,
+            "quantity": 20
+        }
+    ],
+    "pagination": {
+        "page": 1,
+        "limit": 20,
+        "total": 1,
+        "totalPages": 1
     }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "total": 1,
-    "totalPages": 1
-  }
 }
 ```
 
@@ -504,23 +504,23 @@ GET /api/v1/products/1
 
 ```json
 {
-  "success": true,
-  "message": "Product retrieved successfully",
-  "data": {
-    "id": 1,
-    "name": "Laptop",
-    "category_id": 2,
-    "supplier_id": 3,
-    "price": 55000,
-    "quantity": 20
-  }
+    "success": true,
+    "message": "Product retrieved successfully",
+    "data": {
+        "id": 1,
+        "name": "Laptop",
+        "category_id": 2,
+        "supplier_id": 3,
+        "price": 55000,
+        "quantity": 20
+    }
 }
 ```
 
 ### Errors
 
-* `400` — Invalid product ID
-* `404` — Product not found
+- `400` — Invalid product ID
+- `404` — Product not found
 
 ---
 
@@ -548,9 +548,9 @@ Searches products using a search query.
 
 ```json
 {
-  "success": true,
-  "message": "Products retrieved successfully",
-  "data": []
+    "success": true,
+    "message": "Products retrieved successfully",
+    "data": []
 }
 ```
 
@@ -593,10 +593,10 @@ POST /api/v1/products
 
 ```json
 {
-  "name": "Laptop",
-  "category_id": 2,
-  "supplier_id": 3,
-  "price": 55000
+    "name": "Laptop",
+    "category_id": 2,
+    "supplier_id": 3,
+    "price": 55000
 }
 ```
 
@@ -606,15 +606,15 @@ POST /api/v1/products
 
 ```json
 {
-  "success": true,
-  "message": "Product created successfully",
-  "data": {
-    "id": 1,
-    "name": "Laptop",
-    "category_id": 2,
-    "supplier_id": 3,
-    "price": 55000
-  }
+    "success": true,
+    "message": "Product created successfully",
+    "data": {
+        "id": 1,
+        "name": "Laptop",
+        "category_id": 2,
+        "supplier_id": 3,
+        "price": 55000
+    }
 }
 ```
 
@@ -639,8 +639,8 @@ PATCH /api/v1/products/1
 
 ```json
 {
-  "name": "Gaming Laptop",
-  "price": 60000
+    "name": "Gaming Laptop",
+    "price": 60000
 }
 ```
 
@@ -652,13 +652,13 @@ Only fields that need to be changed should be supplied.
 
 ```json
 {
-  "success": true,
-  "message": "Product updated successfully",
-  "data": {
-    "id": 1,
-    "name": "Gaming Laptop",
-    "price": 60000
-  }
+    "success": true,
+    "message": "Product updated successfully",
+    "data": {
+        "id": 1,
+        "name": "Gaming Laptop",
+        "price": 60000
+    }
 }
 ```
 
@@ -705,9 +705,9 @@ GET /api/v1/categories
 
 ```json
 {
-  "success": true,
-  "message": "Categories retrieved successfully",
-  "data": []
+    "success": true,
+    "message": "Categories retrieved successfully",
+    "data": []
 }
 ```
 
@@ -725,12 +725,12 @@ GET /api/v1/categories/:id
 
 ```json
 {
-  "success": true,
-  "message": "Category retrieved successfully",
-  "data": {
-    "id": 1,
-    "name": "Electronics"
-  }
+    "success": true,
+    "message": "Category retrieved successfully",
+    "data": {
+        "id": 1,
+        "name": "Electronics"
+    }
 }
 ```
 
@@ -749,7 +749,7 @@ POST /api/v1/categories
 
 ```json
 {
-  "name": "Electronics"
+    "name": "Electronics"
 }
 ```
 
@@ -759,12 +759,12 @@ POST /api/v1/categories
 
 ```json
 {
-  "success": true,
-  "message": "Category created successfully",
-  "data": {
-    "id": 1,
-    "name": "Electronics"
-  }
+    "success": true,
+    "message": "Category created successfully",
+    "data": {
+        "id": 1,
+        "name": "Electronics"
+    }
 }
 ```
 
@@ -783,7 +783,7 @@ PATCH /api/v1/categories/:id
 
 ```json
 {
-  "name": "Electronic Devices"
+    "name": "Electronic Devices"
 }
 ```
 
@@ -826,9 +826,9 @@ GET /api/v1/suppliers
 
 ```json
 {
-  "success": true,
-  "message": "Suppliers retrieved successfully",
-  "data": []
+    "success": true,
+    "message": "Suppliers retrieved successfully",
+    "data": []
 }
 ```
 
@@ -846,14 +846,14 @@ GET /api/v1/suppliers/:id
 
 ```json
 {
-  "success": true,
-  "message": "Supplier retrieved successfully",
-  "data": {
-    "id": 1,
-    "name": "ABC Suppliers",
-    "email": "supplier@example.com",
-    "phone": "9876543210"
-  }
+    "success": true,
+    "message": "Supplier retrieved successfully",
+    "data": {
+        "id": 1,
+        "name": "ABC Suppliers",
+        "email": "supplier@example.com",
+        "phone": "9876543210"
+    }
 }
 ```
 
@@ -872,9 +872,9 @@ POST /api/v1/suppliers
 
 ```json
 {
-  "name": "ABC Suppliers",
-  "email": "supplier@example.com",
-  "phone": "9876543210"
+    "name": "ABC Suppliers",
+    "email": "supplier@example.com",
+    "phone": "9876543210"
 }
 ```
 
@@ -884,14 +884,14 @@ POST /api/v1/suppliers
 
 ```json
 {
-  "success": true,
-  "message": "Supplier created successfully",
-  "data": {
-    "id": 1,
-    "name": "ABC Suppliers",
-    "email": "supplier@example.com",
-    "phone": "9876543210"
-  }
+    "success": true,
+    "message": "Supplier created successfully",
+    "data": {
+        "id": 1,
+        "name": "ABC Suppliers",
+        "email": "supplier@example.com",
+        "phone": "9876543210"
+    }
 }
 ```
 
@@ -910,7 +910,7 @@ PATCH /api/v1/suppliers/:id
 
 ```json
 {
-  "phone": "9999999999"
+    "phone": "9999999999"
 }
 ```
 
@@ -960,8 +960,8 @@ POST /api/v1/inventory/stock-in
 
 ```json
 {
-  "product_id": 1,
-  "quantity": 10
+    "product_id": 1,
+    "quantity": 10
 }
 ```
 
@@ -971,12 +971,12 @@ POST /api/v1/inventory/stock-in
 
 ```json
 {
-  "success": true,
-  "message": "Stock increased successfully",
-  "data": {
-    "product_id": 1,
-    "quantity_added": 10
-  }
+    "success": true,
+    "message": "Stock increased successfully",
+    "data": {
+        "product_id": 1,
+        "quantity_added": 10
+    }
 }
 ```
 
@@ -999,8 +999,8 @@ POST /api/v1/inventory/stock-out
 
 ```json
 {
-  "product_id": 1,
-  "quantity": 5
+    "product_id": 1,
+    "quantity": 5
 }
 ```
 
@@ -1008,12 +1008,12 @@ POST /api/v1/inventory/stock-out
 
 ```json
 {
-  "success": true,
-  "message": "Stock decreased successfully",
-  "data": {
-    "product_id": 1,
-    "quantity_removed": 5
-  }
+    "success": true,
+    "message": "Stock decreased successfully",
+    "data": {
+        "product_id": 1,
+        "quantity_removed": 5
+    }
 }
 ```
 
@@ -1025,8 +1025,8 @@ If the requested quantity is greater than the available quantity:
 
 ```json
 {
-  "success": false,
-  "message": "Insufficient stock"
+    "success": false,
+    "message": "Insufficient stock"
 }
 ```
 
@@ -1050,18 +1050,18 @@ Retrieves historical stock-in and stock-out transactions.
 
 ```json
 {
-  "success": true,
-  "message": "Inventory history retrieved successfully",
-  "data": [
-    {
-      "id": 1,
-      "product_id": 1,
-      "type": "STOCK_IN",
-      "quantity": 10,
-      "user_id": 2,
-      "created_at": "2026-08-09T10:30:00Z"
-    }
-  ]
+    "success": true,
+    "message": "Inventory history retrieved successfully",
+    "data": [
+        {
+            "id": 1,
+            "product_id": 1,
+            "type": "STOCK_IN",
+            "quantity": 10,
+            "user_id": 2,
+            "created_at": "2026-08-09T10:30:00Z"
+        }
+    ]
 }
 ```
 
@@ -1097,14 +1097,14 @@ Returns inventory-related statistics for the dashboard.
 
 ```json
 {
-  "success": true,
-  "message": "Dashboard statistics retrieved successfully",
-  "data": {
-    "total_products": 100,
-    "total_categories": 10,
-    "total_suppliers": 25,
-    "total_stock": 1500
-  }
+    "success": true,
+    "message": "Dashboard statistics retrieved successfully",
+    "data": {
+        "total_products": 100,
+        "total_categories": 10,
+        "total_suppliers": 25,
+        "total_stock": 1500
+    }
 }
 ```
 
@@ -1152,12 +1152,12 @@ The following requirements should be considered part of the Production API desig
 
 ## 11.1 Authentication
 
-* Use JWT-based authentication for protected API endpoints.
-* Verify the JWT on every protected request.
-* Reject missing, malformed, expired, or invalid tokens.
-* Do not expose passwords in responses.
-* Store passwords using a strong password hashing algorithm such as bcrypt.
-* Password-reset tokens must be time-limited and single-use.
+- Use JWT-based authentication for protected API endpoints.
+- Verify the JWT on every protected request.
+- Reject missing, malformed, expired, or invalid tokens.
+- Do not expose passwords in responses.
+- Store passwords using a strong password hashing algorithm such as bcrypt.
+- Password-reset tokens must be time-limited and single-use.
 
 ---
 
@@ -1169,13 +1169,13 @@ The API should verify that the authenticated user has permission to perform the 
 
 Authorization should be applied to:
 
-* Product creation
-* Product modification
-* Product deletion
-* Category creation/modification/deletion
-* Supplier creation/modification/deletion
-* Stock operations
-* Other administrative operations
+- Product creation
+- Product modification
+- Product deletion
+- Category creation/modification/deletion
+- Supplier creation/modification/deletion
+- Stock operations
+- Other administrative operations
 
 Role-based access control should be implemented if multiple user roles are defined by the project.
 
@@ -1211,16 +1211,16 @@ All client-supplied input must be validated before processing.
 
 Validation should cover:
 
-* Required fields
-* Data types
-* String length
-* Numeric ranges
-* Email format
-* IDs
-* Query parameters
-* Pagination parameters
-* Password requirements
-* Stock quantities
+- Required fields
+- Data types
+- String length
+- Numeric ranges
+- Email format
+- IDs
+- Query parameters
+- Pagination parameters
+- Password requirements
+- Stock quantities
 
 Examples:
 
@@ -1262,10 +1262,10 @@ Production API communication must use HTTPS.
 
 Sensitive information such as:
 
-* Passwords
-* JWTs
-* Password-reset tokens
-* User information
+- Passwords
+- JWTs
+- Password-reset tokens
+- User information
 
 must not be transmitted over unencrypted HTTP.
 
@@ -1275,13 +1275,13 @@ must not be transmitted over unencrypted HTTP.
 
 The API must not expose:
 
-* Database credentials
-* SQL queries
-* Stack traces
-* Internal file paths
-* JWT secrets
-* Environment variables
-* Internal implementation details
+- Database credentials
+- SQL queries
+- Stack traces
+- Internal file paths
+- JWT secrets
+- Environment variables
+- Internal implementation details
 
 Production clients should receive controlled error messages.
 
@@ -1293,15 +1293,15 @@ Detailed technical information should remain in server-side logs.
 
 The API should record security-relevant events such as:
 
-* Successful login
-* Failed login
-* Invalid JWT
-* Unauthorized requests
-* Password-reset requests
-* Resource deletion
-* Inventory stock-in
-* Inventory stock-out
-* Unexpected server errors
+- Successful login
+- Failed login
+- Invalid JWT
+- Unauthorized requests
+- Password-reset requests
+- Resource deletion
+- Inventory stock-in
+- Inventory stock-out
+- Unexpected server errors
 
 Logs should not contain passwords, JWT secrets, or other sensitive credentials.
 
@@ -1341,80 +1341,80 @@ Future breaking changes can then be introduced under a new version:
 
 ## Authentication
 
-* User registration
-* User login
-* JWT authentication
-* User logout
-* Forgot password
-* Reset password
-* User profile
-* Password hashing
-* Authentication middleware
-* Authorization middleware
+- User registration
+- User login
+- JWT authentication
+- User logout
+- Forgot password
+- Reset password
+- User profile
+- Password hashing
+- Authentication middleware
+- Authorization middleware
 
 ## Product Management
 
-* Create product
-* Retrieve all products
-* Retrieve product by ID
-* Search products
-* Retrieve products by category
-* Update product
-* Delete product
-* Product validation
-* Pagination
+- Create product
+- Retrieve all products
+- Retrieve product by ID
+- Search products
+- Retrieve products by category
+- Update product
+- Delete product
+- Product validation
+- Pagination
 
 ## Category Management
 
-* Create category
-* Retrieve all categories
-* Retrieve category by ID
-* Update category
-* Delete category
-* Category validation
+- Create category
+- Retrieve all categories
+- Retrieve category by ID
+- Update category
+- Delete category
+- Category validation
 
 ## Supplier Management
 
-* Create supplier
-* Retrieve all suppliers
-* Retrieve supplier by ID
-* Update supplier
-* Delete supplier
-* Supplier validation
+- Create supplier
+- Retrieve all suppliers
+- Retrieve supplier by ID
+- Update supplier
+- Delete supplier
+- Supplier validation
 
 ## Inventory Management
 
-* Increase stock
-* Decrease stock
-* Prevent negative stock
-* Record inventory transactions
-* Retrieve inventory history
-* Associate inventory operations with authenticated users
+- Increase stock
+- Decrease stock
+- Prevent negative stock
+- Record inventory transactions
+- Retrieve inventory history
+- Associate inventory operations with authenticated users
 
 ## Dashboard
 
-* Retrieve inventory statistics
-* Display product statistics
-* Display category statistics
-* Display supplier statistics
-* Display stock statistics
+- Retrieve inventory statistics
+- Display product statistics
+- Display category statistics
+- Display supplier statistics
+- Display stock statistics
 
 ## API Infrastructure
 
-* API versioning
-* Request validation
-* Centralized error handling
-* Consistent response format
-* HTTP status code handling
-* Authentication middleware
-* Authorization middleware
-* Rate limiting
-* CORS configuration
-* Security logging
-* Request size limits
-* Pagination
-* API documentation
-* Automated API testing
+- API versioning
+- Request validation
+- Centralized error handling
+- Consistent response format
+- HTTP status code handling
+- Authentication middleware
+- Authorization middleware
+- Rate limiting
+- CORS configuration
+- Security logging
+- Request size limits
+- Pagination
+- API documentation
+- Automated API testing
 
 ---
 
@@ -1426,8 +1426,8 @@ The API should provide predictable errors.
 
 ```json
 {
-  "success": false,
-  "message": "Unauthorized"
+    "success": false,
+    "message": "Unauthorized"
 }
 ```
 
@@ -1441,8 +1441,8 @@ HTTP status:
 
 ```json
 {
-  "success": false,
-  "message": "Forbidden"
+    "success": false,
+    "message": "Forbidden"
 }
 ```
 
@@ -1456,8 +1456,8 @@ HTTP status:
 
 ```json
 {
-  "success": false,
-  "message": "Product not found"
+    "success": false,
+    "message": "Product not found"
 }
 ```
 
@@ -1471,14 +1471,14 @@ HTTP status:
 
 ```json
 {
-  "success": false,
-  "message": "Validation failed",
-  "errors": [
-    {
-      "field": "quantity",
-      "message": "Quantity must be greater than zero"
-    }
-  ]
+    "success": false,
+    "message": "Validation failed",
+    "errors": [
+        {
+            "field": "quantity",
+            "message": "Quantity must be greater than zero"
+        }
+    ]
 }
 ```
 
@@ -1492,8 +1492,8 @@ HTTP status:
 
 ```json
 {
-  "success": false,
-  "message": "Too many requests"
+    "success": false,
+    "message": "Too many requests"
 }
 ```
 
@@ -1507,8 +1507,8 @@ HTTP status:
 
 ```json
 {
-  "success": false,
-  "message": "Internal server error"
+    "success": false,
+    "message": "Internal server error"
 }
 ```
 
@@ -1534,12 +1534,12 @@ The API should provide pagination metadata:
 
 ```json
 {
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "total": 100,
-    "totalPages": 5
-  }
+    "pagination": {
+        "page": 1,
+        "limit": 20,
+        "total": 100,
+        "totalPages": 5
+    }
 }
 ```
 
@@ -1626,17 +1626,17 @@ The following table can be updated as development progresses.
 
 The following features are not part of the currently defined endpoint set and should only be added if required by the project:
 
-* Advanced product filtering
-* Product sorting
-* Low-stock alerts
-* Supplier-product relationship endpoints
-* Inventory reports
-* Export functionality
-* Audit-log retrieval
-* User management for administrators
-* Role management
-* Refresh-token endpoint
-* Notification system
+- Advanced product filtering
+- Product sorting
+- Low-stock alerts
+- Supplier-product relationship endpoints
+- Inventory reports
+- Export functionality
+- Audit-log retrieval
+- User management for administrators
+- Role management
+- Refresh-token endpoint
+- Notification system
 
 These should be introduced only after the core API requirements have been implemented and tested.
 

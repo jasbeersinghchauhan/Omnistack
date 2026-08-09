@@ -5,12 +5,11 @@ import {
     getProductsService,
     getProductByIdService,
     updateProductService,
-    deleteProductService
+    deleteProductService,
 } from "./product.service.js";
 
 export const createProduct = async (req, res) => {
     try {
-        
         const product = await createProductService({
             productId: uuidv7(),
             ...req.body,

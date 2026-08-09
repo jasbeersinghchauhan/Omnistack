@@ -28,14 +28,14 @@ The API will be implemented incrementally in the following order:
 
 ### Endpoints
 
-| Method | Endpoint | Access |
-|---|---|---|
-| POST | `/api/v1/auth/register` | Public |
-| POST | `/api/v1/auth/login` | Public |
-| POST | `/api/v1/auth/logout` | Protected |
-| POST | `/api/v1/auth/forgot-password` | Public |
-| POST | `/api/v1/auth/reset-password` | Reset Token |
-| GET | `/api/v1/auth/profile` | Protected |
+| Method | Endpoint                       | Access      |
+| ------ | ------------------------------ | ----------- |
+| POST   | `/api/v1/auth/register`        | Public      |
+| POST   | `/api/v1/auth/login`           | Public      |
+| POST   | `/api/v1/auth/logout`          | Protected   |
+| POST   | `/api/v1/auth/forgot-password` | Public      |
+| POST   | `/api/v1/auth/reset-password`  | Reset Token |
+| GET    | `/api/v1/auth/profile`         | Protected   |
 
 ### Tasks
 
@@ -80,12 +80,12 @@ Categories are implemented before products because products reference `category_
 
 ### Endpoints
 
-| Method | Endpoint | Access |
-|---|---|---|
-| GET | `/api/v1/categories` | Protected |
-| GET | `/api/v1/categories/:id` | Protected |
-| POST | `/api/v1/categories` | Authorized |
-| PATCH | `/api/v1/categories/:id` | Authorized |
+| Method | Endpoint                 | Access     |
+| ------ | ------------------------ | ---------- |
+| GET    | `/api/v1/categories`     | Protected  |
+| GET    | `/api/v1/categories/:id` | Protected  |
+| POST   | `/api/v1/categories`     | Authorized |
+| PATCH  | `/api/v1/categories/:id` | Authorized |
 | DELETE | `/api/v1/categories/:id` | Authorized |
 
 ### Tasks
@@ -107,15 +107,15 @@ Products represent the global product catalog.
 
 ### Endpoints
 
-| Method | Endpoint | Access |
-|---|---|---|
-| GET | `/api/v1/products` | Protected |
-| GET | `/api/v1/products/:id` | Protected |
-| GET | `/api/v1/products/search?q=` | Protected |
-| GET | `/api/v1/products/category/:id` | Protected |
-| POST | `/api/v1/products` | Authorized |
-| PATCH | `/api/v1/products/:id` | Authorized |
-| DELETE | `/api/v1/products/:id` | Authorized |
+| Method | Endpoint                        | Access     |
+| ------ | ------------------------------- | ---------- |
+| GET    | `/api/v1/products`              | Protected  |
+| GET    | `/api/v1/products/:id`          | Protected  |
+| GET    | `/api/v1/products/search?q=`    | Protected  |
+| GET    | `/api/v1/products/category/:id` | Protected  |
+| POST   | `/api/v1/products`              | Authorized |
+| PATCH  | `/api/v1/products/:id`          | Authorized |
+| DELETE | `/api/v1/products/:id`          | Authorized |
 
 ### Tasks
 
@@ -139,12 +139,12 @@ The `seller` entity represents a store or business associated with a user.
 
 ### Endpoints
 
-| Method | Endpoint | Access |
-|---|---|---|
-| GET | `/api/v1/sellers` | Protected |
-| GET | `/api/v1/sellers/:id` | Protected |
-| POST | `/api/v1/sellers` | Authorized |
-| PATCH | `/api/v1/sellers/:id` | Authorized |
+| Method | Endpoint              | Access     |
+| ------ | --------------------- | ---------- |
+| GET    | `/api/v1/sellers`     | Protected  |
+| GET    | `/api/v1/sellers/:id` | Protected  |
+| POST   | `/api/v1/sellers`     | Authorized |
+| PATCH  | `/api/v1/sellers/:id` | Authorized |
 | DELETE | `/api/v1/sellers/:id` | Authorized |
 
 ### Tasks
@@ -167,11 +167,11 @@ Seller-specific price and stock are stored in `seller_products`.
 
 ### Endpoints
 
-| Method | Endpoint | Access |
-|---|---|---|
-| GET | `/api/v1/sellers/:sellerId/products` | Protected |
-| POST | `/api/v1/sellers/:sellerId/products` | Authorized |
-| PATCH | `/api/v1/sellers/:sellerId/products/:productId` | Authorized |
+| Method | Endpoint                                        | Access     |
+| ------ | ----------------------------------------------- | ---------- |
+| GET    | `/api/v1/sellers/:sellerId/products`            | Protected  |
+| POST   | `/api/v1/sellers/:sellerId/products`            | Authorized |
+| PATCH  | `/api/v1/sellers/:sellerId/products/:productId` | Authorized |
 | DELETE | `/api/v1/sellers/:sellerId/products/:productId` | Authorized |
 
 ### Tasks
@@ -197,11 +197,11 @@ Inventory operations modify stock for seller-specific products.
 
 ### Endpoints
 
-| Method | Endpoint | Access |
-|---|---|---|
-| POST | `/api/v1/inventory/stock-in` | Authorized |
-| POST | `/api/v1/inventory/stock-out` | Authorized |
-| GET | `/api/v1/inventory/history` | Protected |
+| Method | Endpoint                      | Access     |
+| ------ | ----------------------------- | ---------- |
+| POST   | `/api/v1/inventory/stock-in`  | Authorized |
+| POST   | `/api/v1/inventory/stock-out` | Authorized |
+| GET    | `/api/v1/inventory/history`   | Protected  |
 
 ### Tasks
 
@@ -229,10 +229,10 @@ The `presence` table stores the current availability status of a seller.
 
 ### Endpoints
 
-| Method | Endpoint | Access |
-|---|---|---|
-| GET | `/api/v1/sellers/:sellerId/presence` | Protected |
-| PATCH | `/api/v1/sellers/:sellerId/presence` | Authorized |
+| Method | Endpoint                             | Access     |
+| ------ | ------------------------------------ | ---------- |
+| GET    | `/api/v1/sellers/:sellerId/presence` | Protected  |
+| PATCH  | `/api/v1/sellers/:sellerId/presence` | Authorized |
 
 ### Tasks
 
@@ -253,9 +253,9 @@ The dashboard will provide aggregated information from the core API resources.
 
 ### Endpoint
 
-| Method | Endpoint | Access |
-|---|---|---|
-| GET | `/api/v1/dashboard/stats` | Protected |
+| Method | Endpoint                  | Access    |
+| ------ | ------------------------- | --------- |
+| GET    | `/api/v1/dashboard/stats` | Protected |
 
 ### Tasks
 
