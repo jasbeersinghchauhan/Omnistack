@@ -1,148 +1,139 @@
 # OmniStock API Specification
 
-**Project:** OmniStock
-**API Version:** v1
-**Base URL:** `/api/v1`
-**Status:** Design Specification
-**Technology:** Node.js, Express.js, PostgreSQL
-**Authentication:** JWT (JSON Web Token)
+**Project:** OmniStock  
+**API Version:** v1  
+**Base URL:** `/api/v1`  
+**Status:** Design Specification  
+**Technology:** Node.js, Express.js, PostgreSQL  
+**Authentication:** JWT
 
 ---
 
 ## 1. Overview
 
-The OmniStock API provides backend services for managing products, categories, suppliers, inventory operations, users, and dashboard statistics.
+The OmniStock API provides services for:
 
-The API follows REST-style conventions and uses JSON for request and response payloads.
+- User authentication
+- Product management
+- Category management
+- Seller management
+- Seller-specific pricing and stock
+- Seller presence
+- Dashboard statistics
 
-The API is versioned using the `/api/v1` prefix to allow future versions to be introduced without breaking existing clients.
+The API follows REST conventions and uses JSON payloads.
 
-### Base Route
+---
 
-```text
-/api/v1
+## 2. Database Resources
+
+The API is based on the following PostgreSQL tables:
+
+| Table | Purpose |
+|---|---|
+| `users` | User accounts and roles |
+| `seller` | Seller/store information and location |
+| `category` | Product categories |
+| `product` | Product catalog |
+| `seller_products` | Seller-specific price and stock |
+| `presence` | Seller availability |
+
+### Relationships
+
+```
+users
+  └── seller
+       ├── seller_products ── product ── category
+       └── presence
 ```
 
-### Resource Groups
+---
 
-```text
+## 3. API Routes
+
+```
 /api/v1/auth
 /api/v1/products
 /api/v1/categories
-/api/v1/suppliers
-/api/v1/inventory
+/api/v1/sellers
+/api/v1/seller-products
+/api/v1/presence
 /api/v1/dashboard
 ```
 
 ---
 
-# 2. General API Conventions
+## 4. API Conventions
 
-## 2.1 Content Type
+### 4.1 Authentication
 
-Requests containing a body should use:
-
-```http
-Content-Type: application/json
-```
-
-Successful responses should return:
-
-```http
-Content-Type: application/json
-```
-
----
-
-## 2.2 Authentication Header
-
-Protected endpoints use JWT authentication.
-
-The token is sent using the `Authorization` header:
+Protected endpoints use JWT:
 
 ```http
 Authorization: Bearer <JWT_TOKEN>
 ```
 
-Endpoints that do not require authentication are explicitly marked as **Public**.
+### 4.2 Request Content Type
 
----
+```http
+Content-Type: application/json
+```
 
-## 2.3 Standard Success Response
-
-Successful responses should follow a consistent structure:
+### 4.3 Success Response
 
 ```json
 {
-    "success": true,
-    "message": "Operation successful",
-    "data": {}
+  "success": true,
+  "message": "Operation successful",
+  "data": {}
 }
 ```
 
-For collections:
+### 4.4 Error Response
 
 ```json
 {
-    "success": true,
-    "message": "Products retrieved successfully",
-    "data": []
+  "success": false,
+  "message": "Error description"
+}
+```
+
+### 4.5 Validation Error
+
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [
+    {
+      "field": "email",
+      "message": "Invalid email address"
+    }
+  ]
 }
 ```
 
 ---
 
-## 2.4 Standard Error Response
+## 5. HTTP Status Codes
 
-Errors should follow a consistent structure:
-
-```json
-{
-    "success": false,
-    "message": "Error description"
-}
-```
-
-For validation errors:
-
-```json
-{
-    "success": false,
-    "message": "Validation failed",
-    "errors": [
-        {
-            "field": "email",
-            "message": "Invalid email address"
-        }
-    ]
-}
-```
-
-Internal implementation details, database errors, stack traces, and sensitive information should not be exposed to API clients.
+| Status | Meaning |
+|---|---|
+| `200` | Successful request |
+| `201` | Resource created |
+| `204` | Resource deleted |
+| `400` | Bad request |
+| `401` | Authentication required or invalid |
+| `403` | Insufficient permissions |
+| `404` | Resource not found |
+| `409` | Duplicate or conflicting resource |
+| `422` | Validation error |
+| `429` | Rate limit exceeded |
+| `500` | Internal server error |
 
 ---
 
-# 3. HTTP Status Codes
-
-The API should use standard HTTP status codes.
-
-| Status | Meaning               | Typical Use                                           |
-| ------ | --------------------- | ----------------------------------------------------- |
-| `200`  | OK                    | Successful GET, PATCH, login                          |
-| `201`  | Created               | Successful POST creating a resource                   |
-| `204`  | No Content            | Successful deletion when no response body is required |
-| `400`  | Bad Request           | Invalid request or malformed input                    |
-| `401`  | Unauthorized          | Missing or invalid authentication                     |
-| `403`  | Forbidden             | Authenticated user lacks permission                   |
-| `404`  | Not Found             | Requested resource does not exist                     |
-| `409`  | Conflict              | Duplicate/conflicting resource                        |
-| `422`  | Unprocessable Entity  | Valid request format but invalid data                 |
-| `429`  | Too Many Requests     | Rate limit exceeded                                   |
-| `500`  | Internal Server Error | Unexpected server-side error                          |
-
----
-
-# 4. Authentication API
+# 6. Authentication API
 
 ## Base Route
 
@@ -150,13 +141,17 @@ The API should use standard HTTP status codes.
 /api/v1/auth
 ```
 
-Authentication endpoints are responsible for user registration, login, logout, password recovery, password reset, and retrieving the authenticated user's profile.
+User roles:
+
+```text
+customer
+seller
+admin
+```
 
 ---
 
-## 4.1 User Registration
-
-### Endpoint
+## 6.1 Register User
 
 ```http
 POST /api/v1/auth/register
@@ -164,58 +159,50 @@ POST /api/v1/auth/register
 
 **Authentication:** Public
 
-### Purpose
-
-Creates a new user account.
-
-### Request Body
+### Request
 
 ```json
 {
-    "name": "John Doe",
-    "email": "john@example.com",
-    "password": "SecurePassword123"
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john@example.com",
+  "phone": "9876543210",
+  "password": "SecurePassword123"
 }
 ```
 
 ### Required Fields
 
-- `name`
+- `first_name`
+- `last_name`
 - `email`
 - `password`
 
-### Success Response
+### Response
 
-**Status:** `201 Created`
+**201 Created**
 
 ```json
 {
-    "success": true,
-    "message": "User registered successfully",
-    "data": {
-        "user": {
-            "id": 1,
-            "name": "John Doe",
-            "email": "john@example.com"
-        }
-    }
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "user_id": "uuid",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john@example.com",
+    "phone": "9876543210",
+    "role": "customer"
+  }
 }
 ```
 
-Passwords must never be returned in API responses.
-
-### Possible Errors
-
-- `400` — Invalid request
-- `409` — Email already registered
-- `422` — Validation failed
-- `500` — Internal server error
+`password_hash` must never be returned.
+The public registration endpoint always creates users with the `customer` role. The `seller` and `admin` roles must not be assigned through public registration.
 
 ---
 
-# 4.2 User Login
-
-### Endpoint
+## 6.2 Login
 
 ```http
 POST /api/v1/auth/login
@@ -223,50 +210,39 @@ POST /api/v1/auth/login
 
 **Authentication:** Public
 
-### Purpose
-
-Authenticates a user and provides a JWT.
-
-### Request Body
+### Request
 
 ```json
 {
-    "email": "john@example.com",
-    "password": "SecurePassword123"
+  "email": "john@example.com",
+  "password": "SecurePassword123"
 }
 ```
 
-### Success Response
+### Response
 
-**Status:** `200 OK`
+**200 OK**
 
 ```json
 {
-    "success": true,
-    "message": "Login successful",
-    "data": {
-        "token": "<JWT_TOKEN>",
-        "user": {
-            "id": 1,
-            "name": "John Doe",
-            "email": "john@example.com"
-        }
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "<JWT_TOKEN>",
+    "user": {
+      "user_id": "uuid",
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john@example.com",
+      "role": "customer"
     }
+  }
 }
 ```
-
-### Possible Errors
-
-- `400` — Missing or invalid input
-- `401` — Invalid credentials
-- `429` — Too many login attempts
-- `500` — Internal server error
 
 ---
 
-# 4.3 User Logout
-
-### Endpoint
+## 6.3 Logout
 
 ```http
 POST /api/v1/auth/logout
@@ -274,34 +250,18 @@ POST /api/v1/auth/logout
 
 **Authentication:** Required
 
-### Purpose
-
-Logs out the authenticated user.
-
-### Request Body
-
-No request body is required.
-
-### Success Response
-
-**Status:** `200 OK`
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Logout successful"
+  "success": true,
+  "message": "Logout successful"
 }
 ```
 
-### Implementation Note
-
-The exact JWT logout strategy must be decided during implementation. Since JWTs are stateless, simply deleting a token on the client does not invalidate an already-issued token on the server. A token revocation strategy or short-lived access-token design may therefore be required.
-
 ---
 
-# 4.4 Forgot Password
-
-### Endpoint
+## 6.4 Forgot Password
 
 ```http
 POST /api/v1/auth/forgot-password
@@ -309,79 +269,56 @@ POST /api/v1/auth/forgot-password
 
 **Authentication:** Public
 
-### Purpose
-
-Initiates the password recovery process.
-
-### Request Body
+### Request
 
 ```json
 {
-    "email": "john@example.com"
+  "email": "john@example.com"
 }
 ```
 
-### Success Response
-
-**Status:** `200 OK`
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "If the account exists, password reset instructions have been sent"
+  "success": true,
+  "message": "If the account exists, password reset instructions have been sent"
 }
 ```
 
-The response should not reveal whether a particular email address is registered.
+The response must not reveal whether the email exists.
 
 ---
 
-# 4.5 Reset Password
-
-### Endpoint
+## 6.5 Reset Password
 
 ```http
 POST /api/v1/auth/reset-password
 ```
 
-**Authentication:** Public, using a password-reset token
+**Authentication:** Public with reset token
 
-### Purpose
-
-Changes the user's password using a valid password-reset token.
-
-### Request Body
+### Request
 
 ```json
 {
-    "token": "<RESET_TOKEN>",
-    "password": "NewSecurePassword123"
+  "token": "<RESET_TOKEN>",
+  "password": "NewSecurePassword123"
 }
 ```
 
-### Success Response
-
-**Status:** `200 OK`
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Password reset successful"
+  "success": true,
+  "message": "Password reset successful"
 }
 ```
-
-### Possible Errors
-
-- `400` — Invalid request
-- `401` — Invalid or expired reset token
-- `422` — Invalid password
-- `500` — Internal server error
 
 ---
 
-# 4.6 User Profile
-
-### Endpoint
+## 6.6 Get Profile
 
 ```http
 GET /api/v1/auth/profile
@@ -389,31 +326,26 @@ GET /api/v1/auth/profile
 
 **Authentication:** Required
 
-### Purpose
-
-Returns the profile of the currently authenticated user.
-
-### Success Response
-
-**Status:** `200 OK`
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Profile retrieved successfully",
-    "data": {
-        "user": {
-            "id": 1,
-            "name": "John Doe",
-            "email": "john@example.com"
-        }
-    }
+  "success": true,
+  "message": "Profile retrieved successfully",
+  "data": {
+    "user_id": "uuid",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john@example.com",
+    "phone": "9876543210",
+    "role": "customer"
+  }
 }
 ```
 
 ---
 
-# 5. Product API
+# 7. Product API
 
 ## Base Route
 
@@ -421,70 +353,48 @@ Returns the profile of the currently authenticated user.
 /api/v1/products
 ```
 
-The Product API manages product records and provides product retrieval, search, creation, modification, and deletion.
+The `product` table stores the global product catalog.
+
+Price and stock are stored in `seller_products`.
 
 ---
 
-## 5.1 Get All Products
-
-### Endpoint
-
-```http
-GET /api/v1/products
-```
-
-**Authentication:** Required
-
-### Purpose
-
-Retrieves a list of products.
-
-### Query Parameters
-
-```text
-?page=1&limit=20
-```
-
-Optional filtering can be added during implementation.
-
-### Example
+## 7.1 Get Products
 
 ```http
 GET /api/v1/products?page=1&limit=20
 ```
 
-### Success Response
+**Authentication:** Required
 
-**Status:** `200 OK`
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Products retrieved successfully",
-    "data": [
-        {
-            "id": 1,
-            "name": "Laptop",
-            "category_id": 2,
-            "supplier_id": 3,
-            "price": 55000,
-            "quantity": 20
-        }
-    ],
-    "pagination": {
-        "page": 1,
-        "limit": 20,
-        "total": 1,
-        "totalPages": 1
+  "success": true,
+  "message": "Products retrieved successfully",
+  "data": [
+    {
+      "product_id": "uuid",
+      "category_id": "uuid",
+      "product_name": "Gaming Laptop",
+      "brand": "TechCorp",
+      "description": "High performance gaming laptop",
+      "image_link": "https://example.com/image.png"
     }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  }
 }
 ```
 
 ---
 
-# 5.2 Get Product by ID
-
-### Endpoint
+## 7.2 Get Product
 
 ```http
 GET /api/v1/products/:id
@@ -492,73 +402,48 @@ GET /api/v1/products/:id
 
 **Authentication:** Required
 
-### Example
+`:id` must be a UUID.
 
-```http
-GET /api/v1/products/1
-```
-
-### Success Response
-
-**Status:** `200 OK`
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Product retrieved successfully",
-    "data": {
-        "id": 1,
-        "name": "Laptop",
-        "category_id": 2,
-        "supplier_id": 3,
-        "price": 55000,
-        "quantity": 20
-    }
+  "success": true,
+  "message": "Product retrieved successfully",
+  "data": {
+    "product_id": "uuid",
+    "category_id": "uuid",
+    "product_name": "Gaming Laptop",
+    "brand": "TechCorp",
+    "description": "High performance gaming laptop",
+    "image_link": "https://example.com/image.png"
+  }
 }
 ```
 
-### Errors
-
-- `400` — Invalid product ID
-- `404` — Product not found
-
 ---
 
-# 5.3 Search Products
-
-### Endpoint
-
-```http
-GET /api/v1/products/search?q=
-```
-
-**Authentication:** Required
-
-### Example
+## 7.3 Search Products
 
 ```http
 GET /api/v1/products/search?q=laptop
 ```
 
-### Purpose
+**Authentication:** Required
 
-Searches products using a search query.
-
-### Success Response
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Products retrieved successfully",
-    "data": []
+  "success": true,
+  "message": "Products retrieved successfully",
+  "data": []
 }
 ```
 
 ---
 
-# 5.4 Get Products by Category
-
-### Endpoint
+## 7.4 Get Products by Category
 
 ```http
 GET /api/v1/products/category/:id
@@ -566,124 +451,91 @@ GET /api/v1/products/category/:id
 
 **Authentication:** Required
 
-### Example
-
-```http
-GET /api/v1/products/category/2
-```
-
-### Purpose
-
-Retrieves products belonging to a specific category.
+`:id` must be a category UUID.
 
 ---
 
-# 5.5 Add Product
-
-### Endpoint
+## 7.5 Create Product
 
 ```http
 POST /api/v1/products
 ```
 
 **Authentication:** Required
-**Authorization:** Based on user role/permissions
+**Authorization:** Admin
 
-### Request Body
+### Request
 
 ```json
 {
-    "name": "Laptop",
-    "category_id": 2,
-    "supplier_id": 3,
-    "price": 55000
+  "category_id": "uuid",
+  "product_name": "Gaming Laptop",
+  "brand": "TechCorp",
+  "description": "High performance gaming laptop",
+  "image_link": "https://example.com/image.png"
 }
 ```
 
-### Success Response
+### Response
 
-**Status:** `201 Created`
+**201 Created**
 
 ```json
 {
-    "success": true,
-    "message": "Product created successfully",
-    "data": {
-        "id": 1,
-        "name": "Laptop",
-        "category_id": 2,
-        "supplier_id": 3,
-        "price": 55000
-    }
+  "success": true,
+  "message": "Product created successfully",
+  "data": {
+    "product_id": "uuid",
+    "category_id": "uuid",
+    "product_name": "Gaming Laptop",
+    "brand": "TechCorp",
+    "description": "High performance gaming laptop",
+    "image_link": "https://example.com/image.png"
+  }
 }
 ```
 
 ---
 
-# 5.6 Update Product
-
-### Endpoint
+## 7.6 Update Product
 
 ```http
 PATCH /api/v1/products/:id
 ```
 
 **Authentication:** Required
-**Authorization:** Based on user role/permissions
+**Authorization:** Admin
 
-### Example Request
-
-```http
-PATCH /api/v1/products/1
-```
+### Request
 
 ```json
 {
-    "name": "Gaming Laptop",
-    "price": 60000
+  "product_name": "Gaming Laptop Pro",
+  "brand": "TechCorp",
+  "description": "Updated description",
+  "image_link": "https://example.com/new-image.png"
 }
 ```
 
-Only fields that need to be changed should be supplied.
-
-### Success Response
-
-**Status:** `200 OK`
-
-```json
-{
-    "success": true,
-    "message": "Product updated successfully",
-    "data": {
-        "id": 1,
-        "name": "Gaming Laptop",
-        "price": 60000
-    }
-}
-```
+Only fields from the `product` table should be updated.
 
 ---
 
-# 5.7 Delete Product
-
-### Endpoint
+## 7.7 Delete Product
 
 ```http
 DELETE /api/v1/products/:id
 ```
 
 **Authentication:** Required
-**Authorization:** Based on user role/permissions
+**Authorization:** Admin
 
-### Success Response
-
-**Status:** `204 No Content`
-
-No response body is required.
+**Response:** `204 No Content`
+Deleting a product also deletes its associated `seller_products` records because of the database foreign-key cascade.
 
 ---
 
-# 6. Category API
+# 8. Category API
 
 ## Base Route
 
@@ -693,7 +545,7 @@ No response body is required.
 
 ---
 
-# 6.1 Get All Categories
+## 8.1 Get Categories
 
 ```http
 GET /api/v1/categories
@@ -701,19 +553,19 @@ GET /api/v1/categories
 
 **Authentication:** Required
 
-### Success Response
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Categories retrieved successfully",
-    "data": []
+  "success": true,
+  "message": "Categories retrieved successfully",
+  "data": []
 }
 ```
 
 ---
 
-# 6.2 Get Category by ID
+## 8.2 Get Category
 
 ```http
 GET /api/v1/categories/:id
@@ -721,355 +573,435 @@ GET /api/v1/categories/:id
 
 **Authentication:** Required
 
-### Success Response
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Category retrieved successfully",
-    "data": {
-        "id": 1,
-        "name": "Electronics"
-    }
+  "success": true,
+  "message": "Category retrieved successfully",
+  "data": {
+    "category_id": "uuid",
+    "category_name": "Electronics"
+  }
 }
 ```
 
 ---
 
-# 6.3 Create Category
+## 8.3 Create Category
 
 ```http
 POST /api/v1/categories
 ```
 
 **Authentication:** Required
-**Authorization:** Based on user role/permissions
+**Authorization:** Admin
 
-### Request Body
+### Request
 
 ```json
 {
-    "name": "Electronics"
+  "category_name": "Electronics"
 }
 ```
 
-### Success Response
+### Response
 
-**Status:** `201 Created`
+**201 Created**
 
 ```json
 {
-    "success": true,
-    "message": "Category created successfully",
-    "data": {
-        "id": 1,
-        "name": "Electronics"
-    }
+  "success": true,
+  "message": "Category created successfully",
+  "data": {
+    "category_id": "uuid",
+    "category_name": "Electronics"
+  }
 }
 ```
 
 ---
 
-# 6.4 Update Category
+## 8.4 Update Category
 
 ```http
 PATCH /api/v1/categories/:id
 ```
 
 **Authentication:** Required
-**Authorization:** Based on user role/permissions
+**Authorization:** Admin
 
-### Request Body
+### Request
 
 ```json
 {
-    "name": "Electronic Devices"
+  "category_name": "Electronic Devices"
 }
 ```
 
 ---
 
-# 6.5 Delete Category
+## 8.5 Delete Category
 
 ```http
 DELETE /api/v1/categories/:id
 ```
 
 **Authentication:** Required
-**Authorization:** Based on user role/permissions
+**Authorization:** Admin
 
-### Success Response
-
-**Status:** `204 No Content`
+**Response:** `204 No Content`
+Deleting a category also deletes its associated products and their `seller_products` records because of the database foreign-key cascades.
 
 ---
 
-# 7. Supplier API
+# 9. Seller API
 
 ## Base Route
 
 ```text
-/api/v1/suppliers
+/api/v1/sellers
 ```
+
+The `seller` table stores seller/store information.
+
+Seller email and phone belong to the related `users` record.
 
 ---
 
-# 7.1 Get Suppliers
+## 9.1 Get Sellers
 
 ```http
-GET /api/v1/suppliers
+GET /api/v1/sellers
 ```
 
 **Authentication:** Required
 
-### Success Response
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Suppliers retrieved successfully",
-    "data": []
+  "success": true,
+  "message": "Sellers retrieved successfully",
+  "data": []
 }
 ```
 
 ---
 
-# 7.2 Get Supplier Details
+## 9.2 Get Seller
 
 ```http
-GET /api/v1/suppliers/:id
+GET /api/v1/sellers/:id
 ```
 
 **Authentication:** Required
 
-### Success Response
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Supplier retrieved successfully",
-    "data": {
-        "id": 1,
-        "name": "ABC Suppliers",
-        "email": "supplier@example.com",
-        "phone": "9876543210"
-    }
+  "success": true,
+  "message": "Seller retrieved successfully",
+  "data": {
+    "seller_id": "uuid",
+    "user_id": "uuid",
+    "store_name": "ABC Electronics",
+    "digipin": "2C3MPFT789",
+    "coordinates": "POINT(77.2090 28.6139)",
+    "verified": false
+  }
 }
 ```
 
 ---
 
-# 7.3 Create Supplier
+## 9.3 Create Seller
 
 ```http
-POST /api/v1/suppliers
+POST /api/v1/sellers
 ```
 
 **Authentication:** Required
-**Authorization:** Based on user role/permissions
 
-### Request Body
+### Request
 
 ```json
 {
-    "name": "ABC Suppliers",
-    "email": "supplier@example.com",
-    "phone": "9876543210"
+  "user_id": "uuid",
+  "store_name": "ABC Electronics",
+  "digipin": "2C3MPFT789",
+  "coordinates": "POINT(77.2090 28.6139)"
 }
 ```
 
-### Success Response
+### Response
 
-**Status:** `201 Created`
-
-```json
-{
-    "success": true,
-    "message": "Supplier created successfully",
-    "data": {
-        "id": 1,
-        "name": "ABC Suppliers",
-        "email": "supplier@example.com",
-        "phone": "9876543210"
-    }
-}
-```
-
----
-
-# 7.4 Update Supplier
-
-```http
-PATCH /api/v1/suppliers/:id
-```
-
-**Authentication:** Required
-**Authorization:** Based on user role/permissions
-
-### Example Request
+**201 Created**
 
 ```json
 {
-    "phone": "9999999999"
+  "success": true,
+  "message": "Seller created successfully",
+  "data": {
+    "seller_id": "uuid",
+    "user_id": "uuid",
+    "store_name": "ABC Electronics",
+    "digipin": "2C3MPFT789",
+    "coordinates": "POINT(77.2090 28.6139)",
+    "verified": false
+  }
 }
 ```
 
 ---
 
-# 7.5 Delete Supplier
+## 9.4 Update Seller
 
 ```http
-DELETE /api/v1/suppliers/:id
+PATCH /api/v1/sellers/:id
 ```
 
 **Authentication:** Required
-**Authorization:** Based on user role/permissions
+**Authorization:** Seller (own seller record) or Admin
+A seller can only update its own seller record.
 
-### Success Response
+### Request
 
-**Status:** `204 No Content`
+```json
+{
+  "store_name": "ABC Electronics Store",
+  "digipin": "2C3MPFT789",
+  "coordinates": "POINT(77.2090 28.6139)"
+}
+```
 
 ---
 
-# 8. Inventory API
+## 9.5 Delete Seller
+
+```http
+DELETE /api/v1/sellers/:id
+```
+
+**Authentication:** Required
+**Authorization:** Admin
+
+**Response:** `204 No Content`
+Deleting a seller also deletes its associated `seller_products` and `presence` records because of the database foreign-key cascades.
+
+---
+
+# 10. Seller Product API
 
 ## Base Route
 
 ```text
-/api/v1/inventory
+/api/v1/seller-products
 ```
 
-Inventory operations represent changes to product stock.
+The `seller_products` table connects sellers with products and stores:
 
-Inventory quantity should not be modified directly through the Product update endpoint. Stock changes should be represented through inventory operations so that they can be tracked in inventory history.
+- `price`
+- `stock_quantity`
+- `inventory_confidence_score`
+- `last_updated`
 
 ---
 
-# 8.1 Increase Stock
-
-### Endpoint
+## 10.1 Get Seller Products
 
 ```http
-POST /api/v1/inventory/stock-in
+GET /api/v1/seller-products
 ```
 
 **Authentication:** Required
-**Authorization:** Based on user role/permissions
+Sellers may only access their own seller-product records. Admins may access records for any seller.
 
-### Request Body
-
-```json
-{
-    "product_id": 1,
-    "quantity": 10
-}
-```
-
-### Success Response
-
-**Status:** `201 Created`
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Stock increased successfully",
-    "data": {
-        "product_id": 1,
-        "quantity_added": 10
-    }
+  "success": true,
+  "message": "Seller products retrieved successfully",
+  "data": []
 }
 ```
-
-The operation should also create an inventory history record.
 
 ---
 
-# 8.2 Decrease Stock
-
-### Endpoint
+## 10.2 Get Seller Product
 
 ```http
-POST /api/v1/inventory/stock-out
+GET /api/v1/seller-products/:id
 ```
 
 **Authentication:** Required
-**Authorization:** Based on user role/permissions
+**Authorization:** Seller (own records) or Admin
 
-### Request Body
-
-```json
-{
-    "product_id": 1,
-    "quantity": 5
-}
-```
-
-### Success Response
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Stock decreased successfully",
-    "data": {
-        "product_id": 1,
-        "quantity_removed": 5
-    }
+  "success": true,
+  "message": "Seller product retrieved successfully",
+  "data": {
+    "id": "uuid",
+    "seller_id": "uuid",
+    "product_id": "uuid",
+    "price": 55000,
+    "stock_quantity": 20,
+    "inventory_confidence_score": 95,
+    "last_updated": "2026-08-11T10:00:00Z"
+  }
 }
 ```
+
+---
+
+## 10.3 Add Seller Product
+
+```http
+POST /api/v1/seller-products
+```
+
+**Authentication:** Required
+**Authorization:** Seller (own records) or Admin
+
+### Request
+
+```json
+{
+  "seller_id": "uuid",
+  "product_id": "uuid",
+  "price": 55000,
+  "stock_quantity": 20,
+  "inventory_confidence_score": 95
+}
+```
+For a seller, `seller_id` must belong to the authenticated user. A seller must not be able to create inventory for another seller.
+Admins may manage inventory for any seller.
 
 ### Validation
 
-The API must prevent stock from becoming negative.
+```text
+price >= 0
+stock_quantity >= 0
+inventory_confidence_score BETWEEN 0 AND 100
+```
 
-If the requested quantity is greater than the available quantity:
+A seller cannot have the same product more than once.
+
+---
+
+## 10.4 Update Seller Product
+
+```http
+PATCH /api/v1/seller-products/:id
+```
+
+**Authentication:** Required
+**Authorization:** Seller (own record) or Admin
+The `seller_id` and `product_id` fields cannot be changed through this endpoint.
+
+### Request
 
 ```json
 {
-    "success": false,
-    "message": "Insufficient stock"
+  "price": 60000,
+  "stock_quantity": 25,
+  "inventory_confidence_score": 90
 }
 ```
 
 ---
 
-# 8.3 Inventory History
-
-### Endpoint
+## 10.5 Delete Seller Product
 
 ```http
-GET /api/v1/inventory/history
+DELETE /api/v1/seller-products/:id
+```
+
+**Authentication:** Required
+**Authorization:** Seller (own record) or Admin
+
+**Response:** `204 No Content`
+
+---
+
+# 11. Presence API
+
+## Base Route
+
+```text
+/api/v1/presence
+```
+
+The `presence` table stores seller availability.
+
+---
+
+## 11.1 Get Seller Presence
+
+```http
+GET /api/v1/presence/:seller_id
 ```
 
 **Authentication:** Required
 
-### Purpose
-
-Retrieves historical stock-in and stock-out transactions.
-
-### Example Response
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Inventory history retrieved successfully",
-    "data": [
-        {
-            "id": 1,
-            "product_id": 1,
-            "type": "STOCK_IN",
-            "quantity": 10,
-            "user_id": 2,
-            "created_at": "2026-08-09T10:30:00Z"
-        }
-    ]
+  "success": true,
+  "message": "Seller presence retrieved successfully",
+  "data": {
+    "presence_id": "uuid",
+    "seller_id": "uuid",
+    "is_open": true,
+    "last_seen": "2026-08-11T10:00:00Z"
+  }
 }
 ```
 
-Pagination should be supported when the inventory history becomes large.
+---
+
+## 11.2 Update Seller Presence
+
+```http
+PATCH /api/v1/presence/:seller_id
+```
+
+**Authentication:** Required
+**Authorization:** Seller (own presence) or Admin
+A seller can only update the presence record associated with its own seller account.
+
+### Request
+
+```json
+{
+  "is_open": true
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Seller presence updated successfully",
+  "data": {
+    "presence_id": "uuid",
+    "seller_id": "uuid",
+    "is_open": true,
+    "last_seen": "2026-08-11T10:00:00Z"
+  }
+}
+```
 
 ---
 
-# 9. Dashboard API
+# 12. Dashboard API
 
 ## Base Route
 
@@ -1079,9 +1011,7 @@ Pagination should be supported when the inventory history becomes large.
 
 ---
 
-# 9.1 Inventory Statistics
-
-### Endpoint
+## 12.1 Get Dashboard Statistics
 
 ```http
 GET /api/v1/dashboard/stats
@@ -1089,556 +1019,287 @@ GET /api/v1/dashboard/stats
 
 **Authentication:** Required
 
-### Purpose
-
-Returns inventory-related statistics for the dashboard.
-
-### Example Response
+### Response
 
 ```json
 {
-    "success": true,
-    "message": "Dashboard statistics retrieved successfully",
-    "data": {
-        "total_products": 100,
-        "total_categories": 10,
-        "total_suppliers": 25,
-        "total_stock": 1500
-    }
+  "success": true,
+  "message": "Dashboard statistics retrieved successfully",
+  "data": {
+    "total_products": 100,
+    "total_categories": 10,
+    "total_sellers": 25,
+    "total_stock": 1500
+  }
 }
 ```
 
-The exact statistics returned should be finalized according to the database schema and dashboard requirements.
+Statistics are derived from:
+
+- `product`
+- `category`
+- `seller`
+- `seller_products`
 
 ---
 
-# 10. Complete Endpoint Summary
+# 13. Security Requirements
 
-| Resource   | Method   | Endpoint                        | Authentication |
-| ---------- | -------- | ------------------------------- | -------------- |
-| Auth       | `POST`   | `/api/v1/auth/register`         | Public         |
-| Auth       | `POST`   | `/api/v1/auth/login`            | Public         |
-| Auth       | `POST`   | `/api/v1/auth/logout`           | Required       |
-| Auth       | `POST`   | `/api/v1/auth/forgot-password`  | Public         |
-| Auth       | `POST`   | `/api/v1/auth/reset-password`   | Reset Token    |
-| Auth       | `GET`    | `/api/v1/auth/profile`          | Required       |
-| Products   | `GET`    | `/api/v1/products`              | Required       |
-| Products   | `GET`    | `/api/v1/products/:id`          | Required       |
-| Products   | `GET`    | `/api/v1/products/search?q=`    | Required       |
-| Products   | `GET`    | `/api/v1/products/category/:id` | Required       |
-| Products   | `POST`   | `/api/v1/products`              | Required       |
-| Products   | `PATCH`  | `/api/v1/products/:id`          | Required       |
-| Products   | `DELETE` | `/api/v1/products/:id`          | Required       |
-| Categories | `GET`    | `/api/v1/categories`            | Required       |
-| Categories | `GET`    | `/api/v1/categories/:id`        | Required       |
-| Categories | `POST`   | `/api/v1/categories`            | Required       |
-| Categories | `PATCH`  | `/api/v1/categories/:id`        | Required       |
-| Categories | `DELETE` | `/api/v1/categories/:id`        | Required       |
-| Suppliers  | `GET`    | `/api/v1/suppliers`             | Required       |
-| Suppliers  | `GET`    | `/api/v1/suppliers/:id`         | Required       |
-| Suppliers  | `POST`   | `/api/v1/suppliers`             | Required       |
-| Suppliers  | `PATCH`  | `/api/v1/suppliers/:id`         | Required       |
-| Suppliers  | `DELETE` | `/api/v1/suppliers/:id`         | Required       |
-| Inventory  | `POST`   | `/api/v1/inventory/stock-in`    | Required       |
-| Inventory  | `POST`   | `/api/v1/inventory/stock-out`   | Required       |
-| Inventory  | `GET`    | `/api/v1/inventory/history`     | Required       |
-| Dashboard  | `GET`    | `/api/v1/dashboard/stats`       | Required       |
+## Authentication
 
----
+- Use JWT for protected endpoints.
+- Verify JWTs on every protected request.
+- Reject missing, invalid or expired tokens.
+- Never expose `password_hash`.
+- Hash passwords using a secure hashing algorithm.
+- Use temporary, single-use password-reset tokens.
 
-# 11. API Security Requirements
+## Authorization
 
-The following requirements should be considered part of the Production API design.
+The API must verify both the authenticated user's role and resource ownership.
 
-## 11.1 Authentication
+- `customer` users cannot perform seller or admin management operations.
+- `seller` users can manage only their own seller profile, seller products, and presence.
+- `admin` users can manage products, categories, sellers, and seller inventory.
+- Sellers must not access or modify another seller's resources.
+- Administrative operations must require the `admin` role.
 
-- Use JWT-based authentication for protected API endpoints.
-- Verify the JWT on every protected request.
-- Reject missing, malformed, expired, or invalid tokens.
-- Do not expose passwords in responses.
-- Store passwords using a strong password hashing algorithm such as bcrypt.
-- Password-reset tokens must be time-limited and single-use.
+## Input Validation
 
----
-
-## 11.2 Authorization
-
-Authentication alone is not sufficient.
-
-The API should verify that the authenticated user has permission to perform the requested operation.
-
-Authorization should be applied to:
-
-- Product creation
-- Product modification
-- Product deletion
-- Category creation/modification/deletion
-- Supplier creation/modification/deletion
-- Stock operations
-- Other administrative operations
-
-Role-based access control should be implemented if multiple user roles are defined by the project.
-
----
-
-## 11.3 Object-Level Authorization
-
-For endpoints containing resource IDs, the API must verify access to the requested resource.
-
-Examples:
-
-```text
-GET    /products/:id
-PATCH  /products/:id
-DELETE /products/:id
-
-GET    /categories/:id
-PATCH  /categories/:id
-DELETE /categories/:id
-
-GET    /suppliers/:id
-PATCH  /suppliers/:id
-DELETE /suppliers/:id
-```
-
-A valid JWT does not automatically grant permission to access every resource.
-
----
-
-## 11.4 Input Validation
-
-All client-supplied input must be validated before processing.
-
-Validation should cover:
+Validate:
 
 - Required fields
-- Data types
+- UUIDs
+- Email
 - String length
 - Numeric ranges
-- Email format
-- IDs
-- Query parameters
-- Pagination parameters
-- Password requirements
-- Stock quantities
+- Pagination
+- Passwords
+- DIGIPIN
+- Coordinates
+- Price
+- Stock quantity
+- Inventory confidence score
 
-Examples:
+## Rate Limiting
 
-```text
-quantity > 0
-price >= 0
-page >= 1
-limit > 0
-```
-
----
-
-## 11.5 Rate Limiting
-
-Rate limiting should be applied to prevent abuse and excessive resource consumption.
-
-Higher-priority endpoints include:
+Apply rate limiting to authentication endpoints, especially:
 
 ```text
-POST /auth/login
 POST /auth/register
+POST /auth/login
 POST /auth/forgot-password
 POST /auth/reset-password
 ```
 
-The API should return:
+Return:
 
 ```text
 429 Too Many Requests
 ```
 
-when a client exceeds the configured request limit.
-
----
-
-## 11.6 HTTPS
+## HTTPS
 
 Production API communication must use HTTPS.
 
-Sensitive information such as:
+## Error Handling
 
-- Passwords
-- JWTs
-- Password-reset tokens
-- User information
-
-must not be transmitted over unencrypted HTTP.
-
----
-
-## 11.7 Secure Error Handling
-
-The API must not expose:
+Do not expose:
 
 - Database credentials
 - SQL queries
 - Stack traces
-- Internal file paths
 - JWT secrets
 - Environment variables
-- Internal implementation details
+- Internal file paths
 
-Production clients should receive controlled error messages.
+## CORS
 
-Detailed technical information should remain in server-side logs.
+Allow only trusted origins in production.
 
----
+## Request Limits
 
-## 11.8 Security Logging
-
-The API should record security-relevant events such as:
-
-- Successful login
-- Failed login
-- Invalid JWT
-- Unauthorized requests
-- Password-reset requests
-- Resource deletion
-- Inventory stock-in
-- Inventory stock-out
-- Unexpected server errors
-
-Logs should not contain passwords, JWT secrets, or other sensitive credentials.
+Set request body size limits to prevent excessively large requests.
 
 ---
 
-## 11.9 CORS
+# 14. Data Retrieval
 
-Cross-Origin Resource Sharing should be explicitly configured.
-
-The production API should not allow arbitrary origins unless there is a specific requirement for doing so.
-
----
-
-## 11.10 Request Size Limits
-
-Request body size should be limited to prevent unnecessarily large requests from consuming server resources.
-
----
-
-## 11.11 API Versioning
-
-All production endpoints should use an explicit API version:
-
-```text
-/api/v1
-```
-
-Future breaking changes can then be introduced under a new version:
-
-```text
-/api/v2
-```
-
----
-
-# 12. API Features and Functional Requirements
-
-## Authentication
-
-- User registration
-- User login
-- JWT authentication
-- User logout
-- Forgot password
-- Reset password
-- User profile
-- Password hashing
-- Authentication middleware
-- Authorization middleware
-
-## Product Management
-
-- Create product
-- Retrieve all products
-- Retrieve product by ID
-- Search products
-- Retrieve products by category
-- Update product
-- Delete product
-- Product validation
-- Pagination
-
-## Category Management
-
-- Create category
-- Retrieve all categories
-- Retrieve category by ID
-- Update category
-- Delete category
-- Category validation
-
-## Supplier Management
-
-- Create supplier
-- Retrieve all suppliers
-- Retrieve supplier by ID
-- Update supplier
-- Delete supplier
-- Supplier validation
-
-## Inventory Management
-
-- Increase stock
-- Decrease stock
-- Prevent negative stock
-- Record inventory transactions
-- Retrieve inventory history
-- Associate inventory operations with authenticated users
-
-## Dashboard
-
-- Retrieve inventory statistics
-- Display product statistics
-- Display category statistics
-- Display supplier statistics
-- Display stock statistics
-
-## API Infrastructure
-
-- API versioning
-- Request validation
-- Centralized error handling
-- Consistent response format
-- HTTP status code handling
-- Authentication middleware
-- Authorization middleware
-- Rate limiting
-- CORS configuration
-- Security logging
-- Request size limits
-- Pagination
-- API documentation
-- Automated API testing
-
----
-
-# 13. API Error Categories
-
-The API should provide predictable errors.
-
-### Authentication Error
-
-```json
-{
-    "success": false,
-    "message": "Unauthorized"
-}
-```
-
-HTTP status:
-
-```text
-401
-```
-
-### Authorization Error
-
-```json
-{
-    "success": false,
-    "message": "Forbidden"
-}
-```
-
-HTTP status:
-
-```text
-403
-```
-
-### Resource Not Found
-
-```json
-{
-    "success": false,
-    "message": "Product not found"
-}
-```
-
-HTTP status:
-
-```text
-404
-```
-
-### Validation Error
-
-```json
-{
-    "success": false,
-    "message": "Validation failed",
-    "errors": [
-        {
-            "field": "quantity",
-            "message": "Quantity must be greater than zero"
-        }
-    ]
-}
-```
-
-HTTP status:
-
-```text
-422
-```
-
-### Rate Limit Error
-
-```json
-{
-    "success": false,
-    "message": "Too many requests"
-}
-```
-
-HTTP status:
-
-```text
-429
-```
-
-### Internal Server Error
-
-```json
-{
-    "success": false,
-    "message": "Internal server error"
-}
-```
-
-HTTP status:
-
-```text
-500
-```
-
----
-
-# 14. Data Retrieval Requirements
-
-Collection endpoints should support pagination where the number of records can grow significantly.
-
-Recommended format:
+Collection endpoints should support pagination:
 
 ```text
 ?page=1&limit=20
 ```
 
-The API should provide pagination metadata:
+Example:
 
 ```json
 {
-    "pagination": {
-        "page": 1,
-        "limit": 20,
-        "total": 100,
-        "totalPages": 5
-    }
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 100,
+    "totalPages": 5
+  }
 }
 ```
 
-The API should also validate pagination parameters and enforce a maximum `limit` to prevent excessively large responses.
+A maximum `limit` should be enforced.
 
 ---
 
-# 15. Data Modification Requirements
+# 15. Data Modification Rules
 
-Create operations should use:
+| Operation | HTTP Method |
+|---|---|
+| Create | `POST` |
+| Partial update | `PATCH` |
+| Delete | `DELETE` |
+| Retrieve | `GET` |
 
-```http
-POST
-```
+Product catalog fields are managed through `/products`.
 
-Partial update operations should use:
+Seller-specific price, stock quantity, and inventory confidence score are managed through `/seller-products`.
 
-```http
-PATCH
-```
-
-Delete operations should use:
-
-```http
-DELETE
-```
-
-Inventory stock changes should use dedicated business-operation endpoints:
-
-```http
-POST /api/v1/inventory/stock-in
-POST /api/v1/inventory/stock-out
-```
-
-The Product update endpoint should not be used to arbitrarily modify inventory quantities.
+There is no separate inventory-history API because the current database schema does not contain an inventory history table.
 
 ---
 
-# 16. API Design Principles
+# 16. API Error Categories
 
-The OmniStock API should follow these principles:
+### 401 Unauthorized
 
-1. **Resource-oriented design** — endpoints represent resources such as products, categories, and suppliers.
-2. **HTTP method semantics** — use HTTP methods according to their intended operation.
-3. **Stateless requests** — each request should contain the information required to process it.
-4. **Consistent responses** — use a common response and error structure.
-5. **Input validation** — never trust client-supplied input.
-6. **Least privilege** — users should receive only the permissions required for their role.
-7. **Secure by default** — protected resources should require authentication and authorization.
-8. **Separation of concerns** — routing, validation, authentication, business logic, and database access should remain separate.
-9. **Versioning** — breaking API changes should be introduced through a new API version.
-10. **Observability** — security and operational events should be logged without exposing sensitive information.
+```json
+{
+  "success": false,
+  "message": "Unauthorized"
+}
+```
+
+### 403 Forbidden
+
+```json
+{
+  "success": false,
+  "message": "Forbidden"
+}
+```
+
+### 404 Not Found
+
+```json
+{
+  "success": false,
+  "message": "Product not found"
+}
+```
+
+### 409 Conflict
+
+```json
+{
+  "success": false,
+  "message": "Product already exists for this seller"
+}
+```
+
+### 422 Validation Error
+
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [
+    {
+      "field": "price",
+      "message": "Price must be greater than or equal to zero"
+    }
+  ]
+}
+```
+
+### 500 Internal Server Error
+
+```json
+{
+  "success": false,
+  "message": "Internal server error"
+}
+```
 
 ---
 
-# 17. Implementation Status
+# 17. Database Validation Rules
 
-The following table can be updated as development progresses.
+```text
+users
+├── email must be lowercase and unique
+├── phone must be unique when provided
+└── role = customer | seller | admin
 
-| Feature              | Design  | Implementation | Testing |
-| -------------------- | ------- | -------------- | ------- |
-| User Registration    | Planned | Pending        | Pending |
-| User Login           | Planned | Pending        | Pending |
-| User Logout          | Planned | Pending        | Pending |
-| Password Recovery    | Planned | Pending        | Pending |
-| User Profile         | Planned | Pending        | Pending |
-| Product CRUD         | Planned | Pending        | Pending |
-| Product Search       | Planned | Pending        | Pending |
-| Category CRUD        | Planned | Pending        | Pending |
-| Supplier CRUD        | Planned | Pending        | Pending |
-| Stock In             | Planned | Pending        | Pending |
-| Stock Out            | Planned | Pending        | Pending |
-| Inventory History    | Planned | Pending        | Pending |
-| Dashboard Statistics | Planned | Pending        | Pending |
-| Input Validation     | Planned | Pending        | Pending |
-| Authorization        | Planned | Pending        | Pending |
-| Rate Limiting        | Planned | Pending        | Pending |
-| Error Handling       | Planned | Pending        | Pending |
-| Security Logging     | Planned | Pending        | Pending |
+seller
+├── user_id must be unique
+├── store_name is required
+├── digipin is required
+├── coordinates are required
+└── verified defaults to false
+
+category
+└── category_name must be unique
+
+product
+├── category_id is required
+└── (product_name, brand) must be unique
+
+seller_products
+├── (seller_id, product_id) must be unique
+├── price >= 0
+├── stock_quantity >= 0
+└── inventory_confidence_score = 0–100
+
+presence
+└── one presence record per seller
+```
 
 ---
 
-# 18. Future Extensions
+# 18. Complete Endpoint Summary
 
-The following features are not part of the currently defined endpoint set and should only be added if required by the project:
+| Resource | Method | Endpoint | Authentication | Authorization
+|---|---|---|---|---|
+| Auth | POST | `/api/v1/auth/register` | Public | - |
+| Auth | POST | `/api/v1/auth/login` | Public |  - |
+| Auth | POST | `/api/v1/auth/logout` | Required | Authenticated User |
+| Auth | POST | `/api/v1/auth/forgot-password` | Public | - |
+| Auth | POST | `/api/v1/auth/reset-password` | Reset Token | Valid reset user |
+| Auth | GET | `/api/v1/auth/profile` | Required | Authenticated user |
+| Products | GET | `/api/v1/products` | Required | All authenticated users |
+| Products | GET | `/api/v1/products/:id` | Required | All authenticated users |
+| Products | GET | `/api/v1/products/search?q=` | Required | All authenticated users |
+| Products | GET | `/api/v1/products/category/:id` | Required | All authenticated users |
+| Products | POST | `/api/v1/products` | Required | Admin |
+| Products | PATCH | `/api/v1/products/:id` | Required | Admin |
+| Products | DELETE | `/api/v1/products/:id` | Required | Admin |
+| Categories | GET | `/api/v1/categories` | Required | All authenticated users |
+| Categories | GET | `/api/v1/categories/:id` | Required | All authenticated users |
+| Categories | POST | `/api/v1/categories` | Required | Admin |
+| Categories | PATCH | `/api/v1/categories/:id` | Required | Admin | 
+| Categories | DELETE | `/api/v1/categories/:id` | Required | Admin |
+| Sellers | GET | `/api/v1/sellers` | Required | All authenticated users |
+| Sellers | GET | `/api/v1/sellers/:id` | Required | All authenticated users |
+| Sellers | POST | `/api/v1/sellers` | Required | Admin |
+| Sellers | PATCH | `/api/v1/sellers/:id` | Required | Own selller/Admin |
+| Sellers | DELETE | `/api/v1/sellers/:id` | Required | Admin |
+| Seller Products | GET | `/api/v1/seller-products` | Required | Authenticated; ownership app;ies |
+| Seller Products | GET | `/api/v1/seller-products/:id` | Required | Own seller/Admin |
+| Seller Products | POST | `/api/v1/seller-products` | Required | Own seller/Admin |
+| Seller Products | PATCH | `/api/v1/seller-products/:id` | Required | Own seller/Admin |
+| Seller Products | DELETE | `/api/v1/seller-products/:id` | Required |  Own seller/Admin |
+| Presence | GET | `/api/v1/presence/:seller_id` | Required | Authenticated users |
+| Presence | PATCH | `/api/v1/presence/:seller_id` | Required | Own seller/Admin |
+| Dashboard | GET | `/api/v1/dashboard/stats` | Required | Authenticated users |
 
-- Advanced product filtering
-- Product sorting
-- Low-stock alerts
-- Supplier-product relationship endpoints
-- Inventory reports
-- Export functionality
-- Audit-log retrieval
-- User management for administrators
-- Role management
-- Refresh-token endpoint
-- Notification system
-
-These should be introduced only after the core API requirements have been implemented and tested.
+**Total: 31 endpoints**
 
 ---
 
@@ -1671,20 +1332,48 @@ These should be introduced only after the core API requirements have been implem
 │   ├── PATCH  /:id
 │   └── DELETE /:id
 │
-├── /suppliers
+├── /sellers
 │   ├── GET    /
 │   ├── GET    /:id
 │   ├── POST   /
 │   ├── PATCH  /:id
 │   └── DELETE /:id
 │
-├── /inventory
-│   ├── POST   /stock-in
-│   ├── POST   /stock-out
-│   └── GET    /history
+├── /seller-products
+│   ├── GET    /
+│   ├── GET    /:id
+│   ├── POST   /
+│   ├── PATCH  /:id
+│   └── DELETE /:id
+│
+├── /presence
+│   ├── GET    /:seller_id
+│   └── PATCH  /:seller_id
 │
 └── /dashboard
     └── GET    /stats
 ```
 
-**Total currently defined endpoints: 26**
+---
+
+# 20. Implementation Status
+
+| Feature | Design | Implementation | Testing |
+|---|---|---|---|
+| User Registration | Planned | Pending | Pending |
+| User Login | Planned | Pending | Pending |
+| User Logout | Planned | Pending | Pending |
+| Password Recovery | Planned | Pending | Pending |
+| User Profile | Planned | Pending | Pending |
+| Product CRUD | Planned | Pending | Pending |
+| Product Search | Planned | Pending | Pending |
+| Category CRUD | Planned | Pending | Pending |
+| Seller CRUD | Planned | Pending | Pending |
+| Seller Product CRUD | Planned | Pending | Pending |
+| Seller Presence | Planned | Pending | Pending |
+| Dashboard Statistics | Planned | Pending | Pending |
+| Input Validation | Planned | Pending | Pending |
+| Authorization | Planned | Pending | Pending |
+| Rate Limiting | Planned | Pending | Pending |
+| Error Handling | Planned | Pending | Pending |
+| Security Logging | Planned | Pending | Pending |
