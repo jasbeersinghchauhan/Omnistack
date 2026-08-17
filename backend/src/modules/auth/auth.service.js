@@ -1,63 +1,63 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { v7 as uuidv7 } from "uuid";
-import query from "../../config/db.js";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import "dotenv/config";
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 export const registerUser = async (userData) => {
     const { firstName, lastName, email, password } = userData;
 
-    const existingUser = await query("SELECT user_id FROM users     WHERE email = $1", [email]);
+    const existingUser = await prisma.user.findUnique({
+        where: { email },
+        select: { user_id: true }
+    });
 
-    if (existingUser.length > 0) {
+    if (existingUser) {
         throw new Error("Email already exists");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const sql = `
-        INSERT INTO users
-        (
-            user_id,
-            first_name,
-            last_name,
-            email,
-            password_hash
-        )
-        VALUES
-        ($1,$2,$3,$4,$5)
-        RETURNING
-        user_id,
-        first_name,
-        last_name,
-        email,
-        role
-    `;
+    const newUser = await prisma.user.create({
+        data: {
+            user_id: uuidv7(),
+            first_name: firstName,
+            last_name: lastName,
+            email: email.toLowerCase(),
+            password_hash: hashedPassword,
+        },
+        select: {
+            user_id: true,
+            first_name: true,
+            last_name: true,
+            email: true,
+            role: true
+        }
+    });
 
-    const values = [uuidv7(), firstName, lastName, email, hashedPassword];
-
-    const rows = await query(sql, values);
-    return rows[0];
+    return newUser;
 };
 
 export const loginUser = async ({ email, password }) => {
-    const sql = `
-        SELECT
-            user_id,
-            first_name,
-            last_name,
-            email,
-            password_hash,
-            role
-        FROM users
-        WHERE email=$1
-    `;
+    const user = await prisma.user.findUnique({
+        where: { email: email.toLowerCase() },
+        select: {
+            user_id: true,
+            first_name: true,
+            last_name: true,
+            email: true,
+            password_hash: true,
+            role: true
+        }
+    });
 
-    const rows = await query(sql, [email]);
-    if (rows.length === 0) {
+    if (!user) {
         throw new Error("Invalid email or password");
     }
-
-    const user = rows[0];
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
 

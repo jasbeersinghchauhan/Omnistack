@@ -24,3 +24,9 @@ coverage/
 
 # Prisma generated
 prisma/dev.db
+/src/generated/prisma
+
+# AI Assistants and IDE configurations
+.windsurf/
+.claude/
+.agents/
