@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
-import query from "./db.js";
+import { prisma } from "./prisma.js";
 
 const options = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -12,17 +12,20 @@ passport.use(
         console.log("JWT Payload:", payload);
 
         try {
-            const sql = `
-                    SELECT user_id, first_name, last_name, email, role
-                    FROM users
-                    WHERE user_id = $1
-                `;
+            const user = await prisma.user.findUnique({
+                where: { user_id: payload.userId },
+                select: {
+                    user_id: true,
+                    first_name: true,
+                    last_name: true,
+                    email: true,
+                    role: true,
+                },
+            });
 
-            const rows = await query(sql, [payload.userId]);
+            if (!user) return done(null, false);
 
-            if (rows.length === 0) return done(null, false);
-
-            return done(null, rows[0]);
+            return done(null, user);
         } catch (error) {
             return done(error, false);
         }

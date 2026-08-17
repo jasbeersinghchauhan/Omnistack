@@ -1,45 +1,40 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { v7 as uuidv7 } from "uuid";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import "dotenv/config";
-
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+import { prisma } from "../../config/prisma.js";
 
 export const registerUser = async (userData) => {
     const { firstName, lastName, email, password } = userData;
 
-    const existingUser = await prisma.user.findUnique({
-        where: { email },
-        select: { user_id: true }
-    });
-
-    if (existingUser) {
-        throw new Error("Email already exists");
-    }
-
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await prisma.user.create({
-        data: {
-            user_id: uuidv7(),
-            first_name: firstName,
-            last_name: lastName,
-            email: email.toLowerCase(),
-            password_hash: hashedPassword,
-        },
-        select: {
-            user_id: true,
-            first_name: true,
-            last_name: true,
-            email: true,
-            role: true
-        }
-    });
+    try {
+        const newUser = await prisma.user.create({
+            data: {
+                user_id: uuidv7(),
+                first_name: firstName,
+                last_name: lastName,
+                email: email.toLowerCase(),
+                password_hash: hashedPassword,
+            },
+            select: {
+                user_id: true,
+                first_name: true,
+                last_name: true,
+                email: true,
+                role: true
+            }
+        });
 
-    return newUser;
+        return newUser;
+    } catch (error) {
+        if (error.code === "P2002" && error.meta?.target?.includes("email")) {
+            const err = new Error("Email already exists");
+            err.statusCode = 409;
+            throw err;
+        }
+        throw error;
+    }
 };
 
 export const loginUser = async ({ email, password }) => {
