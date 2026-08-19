@@ -1,4 +1,6 @@
-const authorize = (...allowedRoles) => {
+import { hasPermission } from "../authorization/permissions.js";
+
+const authorize = (...requiredpermissions) => {
     return (req, res, next) => {
         if (!req.user) {
             return res.status(401).json({
@@ -7,7 +9,11 @@ const authorize = (...allowedRoles) => {
             });
         }
 
-        if (!allowedRoles.includes(req.user.role)) {
+        const isAuthorized = requiredpermissions.some((permission) => {
+            hasPermission(req.user.role, permission);
+        });
+
+        if (!isAuthorized) {
             return res.status(403).json({
                 success: false,
                 message: "You are not authorized to perform this action",
