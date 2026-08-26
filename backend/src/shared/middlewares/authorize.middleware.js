@@ -10,7 +10,7 @@ const authorize = (...requiredpermissions) => {
         }
 
         const isAuthorized = requiredpermissions.some((permission) => {
-            hasPermission(req.user.role, permission);
+            return hasPermission(req.user.role, permission);
         });
 
         if (!isAuthorized) {
