@@ -28,7 +28,7 @@ export const registerUser = async (userData) => {
 
         return newUser;
     } catch (error) {
-        if (error.code === "P2002" && error.meta?.target?.includes("email")) {
+        if (error.code === "P2002") {
             const err = new Error("Email already exists");
             err.statusCode = 409;
             throw err;
@@ -51,13 +51,17 @@ export const loginUser = async ({ email, password }) => {
     });
 
     if (!user) {
-        throw new Error("Invalid email or password");
+        const err = new Error("Invalid email or password");
+        err.statusCode = 401;
+        throw err;
     }
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
 
     if (!isMatch) {
-        throw new Error("Invalid email or password");
+        const err = new Error("Invalid email or password");
+        err.statusCode = 401;
+        throw err;
     }
 
     const token = jwt.sign(

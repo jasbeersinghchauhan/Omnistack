@@ -8,6 +8,7 @@ import logger from "./shared/middlewares/logger.middleware.js";
 import healthRoutes from "./modules/health/health.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import productsRoutes from "./modules/products/product.routes.js";
+import { errorHandler } from "./shared/middlewares/error.middleware.js";
 
 const app = express();
 
@@ -20,5 +21,7 @@ app.use(logger);
 app.use("/api/v1/health", healthRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productsRoutes);
+
+app.use(errorHandler);
 
 export default app;

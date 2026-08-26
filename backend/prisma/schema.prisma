@@ -1,15 +1,9 @@
-datasource db {
-  provider = "postgresql"
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-enum user_role {
-  customer
-  seller
-  admin
+datasource db {
+  provider = "postgresql"
 }
 
 model User {
@@ -22,6 +16,88 @@ model User {
   password_hash String
   created_at    DateTime  @default(now()) @db.Timestamp(6)
   updated_at    DateTime  @default(now()) @updatedAt @db.Timestamp(6)
+  seller        seller?
 
-  @@map("users") 
+  @@map("users")
+}
+
+model category {
+  category_id   String    @id @db.Uuid
+  category_name String    @unique
+  created_at    DateTime  @default(now()) @db.Timestamp(6)
+  updated_at    DateTime  @default(now()) @db.Timestamp(6)
+  product       product[]
+}
+
+model presence {
+  presence_id String   @id @db.Uuid
+  seller_id   String   @unique @db.Uuid
+  is_open     Boolean  @default(false)
+  last_seen   DateTime @default(now()) @db.Timestamp(6)
+  seller      seller   @relation(fields: [seller_id], references: [seller_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_presence_seller")
+}
+
+model product {
+  product_id      String            @id @db.Uuid
+  category_id     String            @db.Uuid
+  product_name    String
+  brand           String
+  description     String
+  image_link      String
+  created_at      DateTime          @default(now()) @db.Timestamp(6)
+  updated_at      DateTime          @default(now()) @db.Timestamp(6)
+  category        category          @relation(fields: [category_id], references: [category_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_category")
+  seller_products seller_products[]
+
+  @@unique([product_name, brand], map: "unique_product_brand")
+  @@index([brand], map: "idx_brand")
+  @@index([product_name], map: "idx_product_name")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model seller {
+  seller_id       String                   @id @db.Uuid
+  user_id         String                   @unique @db.Uuid
+  store_name      String
+  digipin         String                   @db.Char(10)
+  coordinates     Unsupported("geography")
+  verified        Boolean                  @default(false)
+  created_at      DateTime                 @default(now()) @db.Timestamp(6)
+  updated_at      DateTime                 @default(now()) @db.Timestamp(6)
+  presence        presence?
+  users           User                     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
+  seller_products seller_products[]
+
+  @@index([coordinates], map: "idx_coordinates", type: Gist)
+  @@index([store_name], map: "idx_store_name")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model seller_products {
+  id                         String   @id @db.Uuid
+  seller_id                  String   @db.Uuid
+  product_id                 String   @db.Uuid
+  price                      Decimal  @db.Decimal(10, 2)
+  stock_quantity             Int      @default(0)
+  inventory_confidence_score Int      @default(100)
+  last_updated               DateTime @default(now()) @db.Timestamp(6)
+  product                    product  @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_product")
+  seller                     seller   @relation(fields: [seller_id], references: [seller_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_seller")
+
+  @@unique([seller_id, product_id], map: "seller_product_unique")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+enum user_role {
+  customer
+  seller
+  admin
 }
