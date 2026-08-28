@@ -36,8 +36,6 @@ afterAll(async () => {
             email: user.email,
         },
     });
-
-    await prisma.$disconnect();
 });
 
 describe("JWT authentication", () => {

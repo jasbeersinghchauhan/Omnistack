@@ -24,8 +24,6 @@ afterAll(async () => {
             email: user.email,
         },
     });
-
-    await prisma.$disconnect();
 });
 
 describe("POST /auth/login", () => {

@@ -15,13 +15,9 @@ const testUser = {
 afterAll(async () => {
     await prisma.user.deleteMany({
         where: {
-            email: {
-                contains: "@example.com",
-            },
+            email: testUser.email,
         },
     });
-
-    await prisma.$disconnect();
 });
 
 describe("POST /auth/register", () => {
