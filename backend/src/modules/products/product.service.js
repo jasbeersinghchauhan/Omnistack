@@ -1,82 +1,146 @@
-import query from "../../config/db.js";
+import { Prisma } from "@prisma/client";
+import { prisma } from "../../config/prisma.js";
+import {
+    getCache,
+    setCache,
+    deleteCache,
+} from "../../infrastructure/redis/cache.service.js";
+import {
+    PRODUCT_CACHE_TTL,
+    productCacheKey,
+    productsCacheKey,
+} from "./product.cache.js";
 
 export const createProductService = async (product) => {
-    const { productId, categoryId, productName, brand, description, imageLink } = product;
+    const {
+        productId,
+        categoryId,
+        productName,
+        brand,
+        description,
+        imageLink,
+    } = product;
 
-    const sql = `
-                    INSERT INTO product (
-                    product_id,
-                    category_id,
-                    product_name,
-                    brand,
-                    description,
-                    image_link
-                    )
-                    VALUES ($1, $2, $3, $4, $5, $6)
-                    RETURNING *;
-                `;
+    const createdProduct = await prisma.product.create({
+        data: {
+            product_id: productId,
+            category_id: categoryId,
+            product_name: productName,
+            brand,
+            description,
+            image_link: imageLink,
+        },
+    });
 
-    const values = [productId, categoryId, productName, brand, description, imageLink];
+    await deleteCache(productsCacheKey);
 
-    const rows = await query(sql, values);
-    return rows[0];
+    return createdProduct;
 };
 
 export const getProductsService = async () => {
-    const rows = await query(`
-                        SELECT *
-                        FROM product
-                        ORDER BY created_at DESC;
-                    `);
+    const cachedProducts = await getCache(productsCacheKey);
 
-    return rows;
+    if (cachedProducts) {
+        return cachedProducts;
+    }
+
+    const products = await prisma.product.findMany({
+        orderBy: {
+            created_at: "desc",
+        },
+    });
+
+    await setCache(
+        productsCacheKey,
+        products,
+        PRODUCT_CACHE_TTL
+    );
+
+    return products;
 };
 
 export const getProductByIdService = async (id) => {
-    const rows = await query(
-        `
-                                SELECT *
-                                FROM product
-                                WHERE product_id = $1;
-                                `,
-        [id],
+    const cacheKey = productCacheKey(id);
+
+    const cachedProduct = await getCache(cacheKey);
+
+    if (cachedProduct) {
+        return cachedProduct;
+    }
+
+    const product = await prisma.product.findUnique({
+        where: {
+            product_id: id,
+        },
+    });
+
+    if (!product) {
+        return null;
+    }
+
+    await setCache(
+        cacheKey,
+        product,
+        PRODUCT_CACHE_TTL
     );
 
-    return rows[0];
+    return product;
 };
 
 export const updateProductService = async (id, product) => {
-    const { categoryId, productName, brand, description, imageLink } = product;
+    const {
+        categoryId,
+        productName,
+        brand,
+        description,
+        imageLink,
+    } = product;
 
-    const sql = `
-                    UPDATE product
-                    SET
-                    category_id = $1,
-                    product_name = $2,
-                    brand = $3,
-                    description = $4,
-                    image_link = $5,
-                    updated_at = CURRENT_TIMESTAMP
-                    WHERE product_id = $6
-                    RETURNING *;
-                `;
+    try {
+        const updatedProduct = await prisma.product.update({
+            where: {
+                product_id: id,
+            },
+            data: {
+                category_id: categoryId,
+                product_name: productName,
+                brand,
+                description,
+                image_link: imageLink,
+                updated_at: new Date(),
+            },
+        });
 
-    const values = [categoryId, productName, brand, description, imageLink, id];
+        await deleteCache(productCacheKey(id));
+        await deleteCache(productsCacheKey);
 
-    const rows = await query(sql, values);
+        return updatedProduct;
+    } catch (error) {
+        if (error.code === "P2025") {
+            return null;
+        }
 
-    return rows[0];
+        throw error;
+    }
 };
 
 export const deleteProductService = async (id) => {
-    const rows = await query(
-        `
-      DELETE FROM product
-      WHERE product_id = $1
-      RETURNING *;
-    `,
-        [id],
-    );
+    try {
+        const deletedProduct = await prisma.product.delete({
+            where: {
+                product_id: id,
+            },
+        });
 
-    return rows[0];
+        await deleteCache(productCacheKey(id));
+        await deleteCache(productsCacheKey);
+
+        return deletedProduct;
+    } catch (error) {
+        if ( error.code === "P2025" ) {
+            return null;
+        }
+
+        throw error;
+    }
 };
