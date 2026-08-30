@@ -10,6 +10,7 @@ import {
     productCacheKey,
     productsCacheKey,
 } from "./product.cache.js";
+import { addProductCreatedJob } from "../../infrastructure/queue/product.queue.js";
 
 export const createProductService = async (product) => {
     const {
@@ -34,6 +35,8 @@ export const createProductService = async (product) => {
 
     await deleteCache(productsCacheKey);
 
+    await addProductCreatedJob(createdProduct.product_id);
+    
     return createdProduct;
 };
 
